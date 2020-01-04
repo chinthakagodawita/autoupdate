@@ -1,0 +1,20 @@
+name: autoupdate
+on:
+  pull_request:
+    types:
+      - labeled
+      - unlabeled
+      - synchronize
+      - opened
+      - edited
+      - ready_for_review
+      - unlocked
+      - reopened
+  status: {}
+jobs:
+  autoupdate:
+    steps:
+      - name: automerge
+        uses: docker://chinthakagodawita/autoupdate-action:latest
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

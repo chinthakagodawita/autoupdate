@@ -16,6 +16,16 @@ async function main() {
   ghCore.debug(`EVENT NAME: ${eventName}`);
   ghCore.debug(`EVENT DATA: ${rawEventData}`);
 
+  if (eventName === 'pull_reqeust') {
+    ghCore.info('Running on a pull request');
+  } else if (eventName === 'push') {
+    ghCore.info('Running on a push');
+  } else {
+    throw new Error(
+      `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`
+    );
+  }
+
   // updater = new AutoUpdater({
   //   githubToken: process.env['GITHUB_TOKEN'],
   //   pullRequest: process.env[],

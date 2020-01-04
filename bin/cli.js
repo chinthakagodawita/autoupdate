@@ -23,10 +23,8 @@ async function main() {
   );
 
   if (eventName === 'pull_request') {
-    ghCore.info('Running on a pull request');
     await updater.handlePullRequest();
   } else if (eventName === 'push') {
-    ghCore.info('Running on a push');
     await updater.handlePush();
   } else {
     throw new Error(

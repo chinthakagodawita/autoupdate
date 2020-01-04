@@ -10,11 +10,14 @@ on:
       - ready_for_review
       - unlocked
       - reopened
-  status: {}
+    push: {}
 jobs:
   autoupdate:
+    runs-on: ubuntu-latest
     steps:
-      - name: automerge
-        uses: docker://chinthakagodawita/autoupdate-action:latest
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: autoupdate
+        uses: ./
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

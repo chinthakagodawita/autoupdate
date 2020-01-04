@@ -9,15 +9,6 @@ class AutoUpdater {
   constructor(githubToken, eventData, runningOnGithub = true) {
     this.eventData = eventData;
     this.runningOnGithub = this.runningOnGithub;
-    // const repoParts = repository.split('/');
-    // if (repoParts.length !== 2) {
-    //   throw new Error(
-    //     `Invalid format for repository, expected 'owner/repository', got '${repository}'.`
-    //   )
-    // }
-
-    // this.repoOwner = repoParts[0];
-    // this.repoName = repoParts[1];
 
     if (githubToken !== null && githubToken !== void 0) {
       this.octokit = new github.GitHub(githubToken);
@@ -105,8 +96,9 @@ class AutoUpdater {
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
-      base: baseRef,
-      head: headRef,
+      // We want to merge the base branch into this one.
+      base: headRef,
+      head: baseRef,
     });
 
     // See https://developer.github.com/v3/repos/merging/#perform-a-merge

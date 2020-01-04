@@ -99,8 +99,8 @@ class AutoUpdater {
       return false;
     }
 
-    const baseRef = pull.base.ref;
-    const headRef = pull.head.ref;
+    const baseRef = pull.base.label;
+    const headRef = pull.head.label;
     ghCore.info(` > Updating branch '${ref}' on pull request #${pull.number} with changes from branch '${baseBranch}'.`);
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
@@ -125,38 +125,17 @@ class AutoUpdater {
   }
 
   async prNeedsUpdate(pull) {
-    let state;
-    // In some cases, we may have the mergeable state on the pull itself
-    // and we can avoid doing a full PR state check.
-    if ('mergeable_state' in pull) {
-      state = pull.mergeable_state;
-    } else {
-      const pullResp = await this.octokit.pulls.get({
-        owner: pull.head.repo.owner.login,
-        repo: pull.head.repo.name,
-        pull_number: pull.number,
-      });
+    const { data: comparison } = await this.octokit.repos.compareCommits({
+      owner: pull.head.repo.owner.login,
+      repo: pull.head.repo.name,
+      // This base->head, head->base logic is intentional, we want
+      // to see what would happen if we merged the base into head not
+      // vice-versa.
+      base: pull.head.label,
+      head: pull.base.label,
+    });
 
-      state = pullResp.data.mergeable_state;
-    }
-
-    // We only care if the state is 'behind', which means that the branch
-    // is out-of-date. All other states cannot be handled.
-    // See https://developer.github.com/v4/enum/mergestatestatus/.
-    const needsUpdate = state === 'behind';
-
-    if (!needsUpdate) {
-      let msg;
-      if (state === 'clean' || state === 'has_hooks') {
-        // @TODO: Write a prefixed logger class.
-        msg = ` > Pull request is already up-to-date (state: ${state}), no further update required.`;
-      } else {
-        msg = ` > Could not update pull-request, state of PR was '${state}'.`;
-      }
-      ghCore.info(msg);
-    }
-
-    return needsUpdate;
+    return comparison.behind_by > 0;
   }
   
   async run() {

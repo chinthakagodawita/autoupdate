@@ -15,7 +15,7 @@ jobs:
   autoupdate:
     runs-on: ubuntu-latest
     steps:
-      - name: automerge
-        uses: docker://chinthakagodawita/autoupdate-action:latest
+      - name: autoupdate
+        uses: ./
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

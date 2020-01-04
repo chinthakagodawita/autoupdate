@@ -137,14 +137,6 @@ class AutoUpdater {
 
     return comparison.behind_by > 0;
   }
-  
-  async run() {
-    console.log(await this.octokit.pulls.list({
-      owner: this.repoOwner,
-      repo: this.repoName,
-    }));
-    console.log('running yo')
-  }
 }
 
 module.exports = AutoUpdater;

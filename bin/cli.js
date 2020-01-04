@@ -9,7 +9,7 @@ const AutoUpdater = require('../src/autoupdater.js');
 async function main() {
   const eventPath = process.env['GITHUB_EVENT_PATH'];
 
-  const eventData = JSON.parse(fs.readSync(eventPath, 'utf8'));
+  const eventData = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
   
   ghCore.debug(eventData);
 

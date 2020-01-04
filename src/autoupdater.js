@@ -99,8 +99,8 @@ class AutoUpdater {
       return false;
     }
 
-    const baseRef = pull.base.label;
-    const headRef = pull.head.label;
+    const baseRef = pull.base.ref;
+    const headRef = pull.head.ref;
     ghCore.info(` > Updating branch '${ref}' on pull request #${pull.number} with changes from branch '${baseBranch}'.`);
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
@@ -136,14 +136,6 @@ class AutoUpdater {
     });
 
     return comparison.behind_by > 0;
-  }
-  
-  async run() {
-    console.log(await this.octokit.pulls.list({
-      owner: this.repoOwner,
-      repo: this.repoName,
-    }));
-    console.log('running yo')
   }
 }
 

@@ -62,8 +62,10 @@ class AutoUpdater {
     let updated = 0;
     for await (const pullsPage of this.octokit.paginate.iterator(pulls)) {
       for (const pull of pulls.data) {
-        await this.update(pull, baseBranch);
-        updated++;
+        const isUpdated = await this.update(pull, baseBranch);
+        if (isUpdated) {
+          updated++;
+        }
       }
     }
 
@@ -83,18 +85,18 @@ class AutoUpdater {
 
     if (pull.merged === true) {
       ghCore.warning(` > Skipping pull request, already merged.`);
-      return;
+      return false;
     }
     if (pull.state !== 'open') {
       ghCore.warning(
         ` > Skipping pull request, no longer open (current state: ${pull.state}).`
       );
-      return;
+      return false;
     }
 
     const prNeedsUpdate = await this.prNeedsUpdate(pull);
     if (!prNeedsUpdate) {
-      return;
+      return false;
     }
 
     const baseRef = pull.base.ref;
@@ -118,6 +120,8 @@ class AutoUpdater {
         ` > Branch update not required, branch is already up-to-date.`
       );
     }
+
+    return true;
   }
 
   async prNeedsUpdate(pull) {

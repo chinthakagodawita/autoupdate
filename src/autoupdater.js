@@ -53,7 +53,7 @@ class AutoUpdater {
     let updated = 0;
     for await (const pullsPage of this.octokit.paginate.iterator(pulls)) {
       for (const pull of pulls.data) {
-        const isUpdated = await this.update(pull, baseBranch);
+        const isUpdated = await this.update(pull);
         if (isUpdated) {
           updated++;
         }
@@ -64,13 +64,21 @@ class AutoUpdater {
   }
 
   async handlePullRequest() {
-    const { ref, repository } = this.eventData;
+    const { action } = this.eventData; 
 
-    ghCore.info(`Handling push event on ref '${ref}'`);
-    ghCore.error('Direct pull request support coming soon');
+    ghCore.info(`Handling pull_request event triggered by action '${action}'`);
+    
+    const isUpdated = await this.update(this.eventData.pull_request);
+    if (isUpdated) {
+      ghCore.info(
+        `Auto update complete, pull request branch was updated with changes from the base branch.`
+      );
+    } else {
+      ghCore.info(`Auto update complete, no changes were made.`);
+    }
   }
 
-  async update(pull, baseBranch) {
+  async update(pull) {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -92,7 +100,7 @@ class AutoUpdater {
 
     const baseRef = pull.base.ref;
     const headRef = pull.head.ref;
-    ghCore.info(` > Updating branch '${ref}' on pull request #${pull.number} with changes from branch '${baseBranch}'.`);
+    ghCore.info(` > Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`);
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,

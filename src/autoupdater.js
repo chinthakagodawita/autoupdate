@@ -23,7 +23,7 @@ class AutoUpdater {
     ghCore.info(`Handling push event on ref '${ref}'`);
 
     if (!ref.startsWith('refs/heads/')) {
-      ghCore.info('Push event was not on a branch.');
+      ghCore.warning('Push event was not on a branch, skipping.');
       return;
     }
 

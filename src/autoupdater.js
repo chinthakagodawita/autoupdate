@@ -29,7 +29,7 @@ class AutoUpdater {
   async handlePush() {
     const { ref, repository } = this.eventData;
 
-    ghCore.debug(`Handling push event on ref '${ref}'`);
+    ghCore.info(`Handling push event on ref '${ref}'`);
 
     if (!ref.startsWith('refs/heads/')) {
       ghCore.info('Push event was not on a branch.');
@@ -71,6 +71,9 @@ class AutoUpdater {
   }
 
   async handlePullRequest() {
+    const { ref, repository } = this.eventData;
+
+    ghCore.info(`Handling push event on ref '${ref}'`);
     ghCore.error('Direct pull request support coming soon');
   }
 

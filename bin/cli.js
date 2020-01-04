@@ -16,22 +16,23 @@ async function main() {
   ghCore.debug(`EVENT NAME: ${eventName}`);
   ghCore.debug(`EVENT DATA: ${rawEventData}`);
 
-  if (eventName === 'pull_reqeust') {
+  const updater = new AutoUpdater(
+    process.env['GITHUB_TOKEN'],
+    eventData,
+    true,
+  );
+
+  if (eventName === 'pull_request') {
     ghCore.info('Running on a pull request');
+    await updater.handlePullRequest();
   } else if (eventName === 'push') {
     ghCore.info('Running on a push');
+    await updater.handlePush();
   } else {
     throw new Error(
       `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`
     );
   }
-
-  // updater = new AutoUpdater({
-  //   githubToken: process.env['GITHUB_TOKEN'],
-  //   pullRequest: process.env[],
-  //   repository: process.env['GITHUB_REPOSITORY'],
-  // });
-  // await updater.run();
 }
 
 if (require.main === module) {

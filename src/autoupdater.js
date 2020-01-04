@@ -29,21 +29,14 @@ class AutoUpdater {
 
     const baseBranch = ref.replace('refs/heads/', '');
 
-    let pulls;
-    try {
-      pulls = await this.octokit.pulls.list({
-        owner: repository.owner.name,
-        repo: repository.name,
-        base: baseBranch,
-        // owner: 'lendingworks',
-        // repo: 'pam',
-        state: 'open',
-        sort: 'updated',
-        direction: 'desc',
-      });
-    } catch (e) {
-      throw new Error(`Failed to list PRs: ${e.message}`);
-    }
+    const pulls = await this.octokit.pulls.list({
+      owner: repository.owner.name,
+      repo: repository.name,
+      base: baseBranch,
+      state: 'open',
+      sort: 'updated',
+      direction: 'desc',
+    });
 
     if (pulls.data.length === 0) {
       ghCore.info(`Base branch '${baseBranch}' has no pull requests that point to it, skipping autoupdate.`);

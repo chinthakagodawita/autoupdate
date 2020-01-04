@@ -10,10 +10,11 @@ async function main() {
   const eventPath = process.env['GITHUB_EVENT_PATH'];
   const eventName = process.env['GITHUB_EVENT_NAME'];
 
-  const eventData = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+  const rawEventData = fs.readFileSync(eventPath, 'utf8');
+  const eventData = JSON.parse(rawEventData);
   
   ghCore.debug(`EVENT NAME: ${eventName}`);
-  ghCore.debug(`EVENT DATA: ${eventData}`);
+  ghCore.debug(`EVENT DATA: ${rawEventData}`);
 
   // updater = new AutoUpdater({
   //   githubToken: process.env['GITHUB_TOKEN'],

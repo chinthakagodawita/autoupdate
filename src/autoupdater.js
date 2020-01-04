@@ -96,8 +96,9 @@ class AutoUpdater {
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
-      base: baseRef,
-      head: headRef,
+      // We want to merge the base branch into this one.
+      base: headRef,
+      head: baseRef,
     });
 
     // See https://developer.github.com/v3/repos/merging/#perform-a-merge

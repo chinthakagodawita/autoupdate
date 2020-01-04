@@ -10,6 +10,7 @@ on:
       - ready_for_review
       - unlocked
       - reopened
+    push: {}
 jobs:
   autoupdate:
     runs-on: ubuntu-latest

@@ -2,16 +2,10 @@ const github = require('@actions/github');
 const ghCore = require('@actions/core');
 
 class AutoUpdater {
-  constructor(githubToken, eventData) {
+  constructor(config, eventData) {
     this.eventData = eventData;
-
-    if (githubToken === null || githubToken === void 0) {
-      throw new Error(
-        `Github token was not provided, please check that you have provided the 'GITHUB_TOKEN' environment variable.`
-      );
-    }
-
-    this.octokit = new github.GitHub(githubToken);
+    this.config = config;
+    this.octokit = new github.GitHub(this.config.githubToken());
   }
 
   async handlePush() {
@@ -141,9 +135,26 @@ class AutoUpdater {
       return false;
     }
 
-    // @TODO: check labels if enabled.
+    if (this.config.pullRequestFilter() === 'labelled') {
+      const labels = this.config.pullRequestLabels();
+      if (labels.length === 0) {
+        ghCore.warning(
+          ` > Skipping pull request, PR_FILTER=labelled but no labels were defined (env var: PR_LABELS).`
+        );
+        return false;
+      }
 
-    // @TODO: check protected if only protected enabled.
+      // @TODO: check labels if enabled.
+    }
+
+    if (this.config.pullRequestFilter() === 'protected') {
+      const status = this.octokit.repos.getProtectedBranchRequiredStatusChecks({
+        owner: pull.head.repo.owner.login,
+        repo: pull.head.repo.name,
+        branch: pull.base.ref,
+      });
+      // @TODO: check protected if only protected enabled.
+    }
 
     return true;
   }

@@ -12,14 +12,13 @@ async function main() {
 
   const rawEventData = fs.readFileSync(eventPath, 'utf8');
   const eventData = JSON.parse(rawEventData);
-  
+
   ghCore.debug(`EVENT NAME: ${eventName}`);
   ghCore.debug(`EVENT DATA: ${rawEventData}`);
 
   const updater = new AutoUpdater(
     process.env['GITHUB_TOKEN'],
     eventData,
-    true,
   );
 
   if (eventName === 'pull_request') {

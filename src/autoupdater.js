@@ -2,19 +2,16 @@ const github = require('@actions/github');
 const ghCore = require('@actions/core');
 
 class AutoUpdater {
-  eventData;
-  runningOnGithub;
-  octokit;
-
-  constructor(githubToken, eventData, runningOnGithub = true) {
+  constructor(githubToken, eventData) {
     this.eventData = eventData;
-    this.runningOnGithub = this.runningOnGithub;
 
-    if (githubToken !== null && githubToken !== void 0) {
-      this.octokit = new github.GitHub(githubToken);
-    } else {
-      throw new Error("Github token was not provided, please check that you have provided the 'GITHUB_TOKEN' environment variable.");
+    if (githubToken === null || githubToken === void 0) {
+      throw new Error(
+        `Github token was not provided, please check that you have provided the 'GITHUB_TOKEN' environment variable.`
+      );
     }
+
+    this.octokit = new github.GitHub(githubToken);
   }
 
   async handlePush() {
@@ -39,7 +36,9 @@ class AutoUpdater {
     });
 
     if (pulls.data.length === 0) {
-      ghCore.info(`Base branch '${baseBranch}' has no pull requests that point to it, skipping autoupdate.`);
+      ghCore.info(
+        `Base branch '${baseBranch}' has no pull requests that point to it, skipping autoupdate.`
+      );
       return;
     }
 
@@ -53,14 +52,16 @@ class AutoUpdater {
       }
     }
 
-    ghCore.info(`Auto update complete, ${updated} pull request(s) that point to base branch '${baseBranch}' were updated.`);
+    ghCore.info(
+      `Auto update complete, ${updated} pull request(s) that point to base branch '${baseBranch}' were updated.`
+    );
   }
 
   async handlePullRequest() {
-    const { action } = this.eventData; 
+    const { action } = this.eventData;
 
     ghCore.info(`Handling pull_request event triggered by action '${action}'`);
-    
+
     const isUpdated = await this.update(this.eventData.pull_request);
     if (isUpdated) {
       ghCore.info(
@@ -75,31 +76,25 @@ class AutoUpdater {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
-    if (pull.merged === true) {
-      ghCore.warning(` > Skipping pull request, already merged.`);
-      return false;
-    }
-    if (pull.state !== 'open') {
-      ghCore.warning(
-        ` > Skipping pull request, no longer open (current state: ${pull.state}).`
-      );
-      return false;
-    }
-
     const prNeedsUpdate = await this.prNeedsUpdate(pull);
     if (!prNeedsUpdate) {
       return false;
     }
 
+    // @TODO: Add support for squash & rebase merge types.
+
     const baseRef = pull.base.ref;
     const headRef = pull.head.ref;
-    ghCore.info(` > Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`);
+    ghCore.info(
+      ` > Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`
+    );
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
       base: headRef,
       head: baseRef,
+      // @TODO: Add custom commit message support.
     });
 
     // See https://developer.github.com/v3/repos/merging/#perform-a-merge
@@ -118,6 +113,17 @@ class AutoUpdater {
   }
 
   async prNeedsUpdate(pull) {
+    if (pull.merged === true) {
+      ghCore.warning(` > Skipping pull request, already merged.`);
+      return false;
+    }
+    if (pull.state !== 'open') {
+      ghCore.warning(
+        ` > Skipping pull request, no longer open (current state: ${pull.state}).`
+      );
+      return false;
+    }
+
     const { data: comparison } = await this.octokit.repos.compareCommits({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
@@ -128,7 +134,18 @@ class AutoUpdater {
       head: pull.base.label,
     });
 
-    return comparison.behind_by > 0;
+    if (comparison.behind_by === 0) {
+      ghCore.warning(
+        ` > Skipping pull request, up-to-date with base branch.`
+      );
+      return false;
+    }
+
+    // @TODO: check labels if enabled.
+
+    // @TODO: check protected if only protected enabled.
+
+    return true;
   }
 }
 

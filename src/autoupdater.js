@@ -68,10 +68,12 @@ class AutoUpdater {
 
   async update(pull) {
     const { ref } = pull.head;
+    ghCore.startGroup(`PR-${pull.number}`);
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
     const prNeedsUpdate = await this.prNeedsUpdate(pull);
     if (!prNeedsUpdate) {
+      ghCore.endGroup();
       return false;
     }
 
@@ -84,9 +86,10 @@ class AutoUpdater {
     );
 
     if (this.config.dryRun()) {
-      ghCore.info(
+      ghCore.warning(
         ` > Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`
       );
+      ghCore.endGroup();
       return true;
     }
 
@@ -111,6 +114,7 @@ class AutoUpdater {
       );
     }
 
+    ghCore.endGroup();
     return true;
   }
 
@@ -137,9 +141,7 @@ class AutoUpdater {
     });
 
     if (comparison.behind_by === 0) {
-      ghCore.warning(
-        ` > Skipping pull request, up-to-date with base branch.`
-      );
+      ghCore.info(` > Skipping pull request, up-to-date with base branch.`);
       return false;
     }
 
@@ -150,7 +152,6 @@ class AutoUpdater {
     );
 
     if (prFilter === 'labelled') {
-      ghCore.info(' > Checking if this PR has an approved label.');
       const labels = this.config.pullRequestLabels();
       if (labels.length === 0) {
         ghCore.warning(
@@ -158,6 +159,9 @@ class AutoUpdater {
         );
         return false;
       }
+      ghCore.info(
+        ` > Checking if this PR has a label in our list (${labels.join(', ')}).`
+      );
 
       if (pull.labels.length === 0) {
         ghCore.info(

@@ -148,7 +148,6 @@ class AutoUpdater {
     );
 
     if (prFilter === 'labelled') {
-      ghCore.info(' > Checking if this PR has an approved label.');
       const labels = this.config.pullRequestLabels();
       if (labels.length === 0) {
         ghCore.warning(
@@ -156,6 +155,9 @@ class AutoUpdater {
         );
         return false;
       }
+      ghCore.info(
+        ` > Checking if this PR has a label in our list (${labels.join(', ')}).`
+      );
 
       if (pull.labels.length === 0) {
         ghCore.info(

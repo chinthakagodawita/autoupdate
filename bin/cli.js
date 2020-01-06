@@ -4,7 +4,7 @@ const fs = require('fs');
 const ghCore = require('@actions/core');
 
 const AutoUpdater = require('../src/autoupdater');
-const config = require('../src/lib/config');
+const config = require('../src/config-loader');
 
 async function main() {
   const eventPath = process.env['GITHUB_EVENT_PATH'];

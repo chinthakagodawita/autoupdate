@@ -23,4 +23,4 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           DRY_RUN: "true"
           PR_FILTER: "labelled"
-          PR_LABELS: "autoupdate"
+          PR_LABELS: "autoupdate,dummy label,anotherLabel"

@@ -16,6 +16,12 @@ async function main() {
   ghCore.debug(`EVENT NAME: ${eventName}`);
   ghCore.debug(`EVENT DATA: ${rawEventData}`);
 
+  if (config.dryRun()) {
+    ghCore.info(
+      `Detected DRY_RUN=true, running in dry mode - no merges will be made.`
+    );
+  }
+
   const updater = new AutoUpdater(
     config,
     eventData,

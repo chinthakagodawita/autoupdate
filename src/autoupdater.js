@@ -143,19 +143,43 @@ class AutoUpdater {
       return false;
     }
 
-    if (this.config.pullRequestFilter() === 'labelled') {
+    const prFilter = this.config.pullRequestFilter();
+
+    ghCore.info(
+      ` > PR_FILTER=${prFilter}, checking if this PR's branch needs to be updated.`
+    );
+
+    if (prFilter === 'labelled') {
+      ghCore.info(' > Checking if this PR has an approved label.');
       const labels = this.config.pullRequestLabels();
       if (labels.length === 0) {
         ghCore.warning(
-          ` > Skipping pull request, PR_FILTER=labelled but no labels were defined (env var: PR_LABELS).`
+          ` > Skipping pull request, no labels were defined (env var PR_LABELS is empty or not defined).`
         );
         return false;
       }
 
-      // @TODO: check labels if enabled.
+      if (pull.labels.length === 0) {
+        ghCore.info(
+          ` > Skipping pull request, it has no labels.`
+        );
+        return false;
+      }
+
+      for (const label of pull.labels) {
+        if (label.name in labels) {
+          ghCore.info(
+            ` > Pull request has label '${label}' and PR branch is behind base branch.`
+          );
+          return true;
+        }
+      }
     }
 
     if (this.config.pullRequestFilter() === 'protected') {
+      ghCore.info(
+        ' > Checking if this PR is against a protected branch that requires PR branches to be up-to-date.'
+      );
       const status = this.octokit.repos.getProtectedBranchRequiredStatusChecks({
         owner: pull.head.repo.owner.login,
         repo: pull.head.repo.name,
@@ -164,6 +188,9 @@ class AutoUpdater {
       // @TODO: check protected if only protected enabled.
     }
 
+    ghCore.info(
+      ' > All checks pass and PR branch is behind base branch.'
+    );
     return true;
   }
 }

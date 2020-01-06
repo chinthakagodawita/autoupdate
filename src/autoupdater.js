@@ -173,18 +173,32 @@ class AutoUpdater {
           return true;
         }
       }
+
+      ghCore.info(
+        `Pull request does not match any of the defined labels, skipping update.`
+      );
+      return false;
     }
 
     if (this.config.pullRequestFilter() === 'protected') {
-      ghCore.info(
-        'Checking if this PR is against a protected branch that requires PR branches to be up-to-date.'
-      );
-      const status = this.octokit.repos.getProtectedBranchRequiredStatusChecks({
+      ghCore.info('Checking if this PR is against a protected branch.');
+      const { data: branch } = this.octokit.repos.getBranch({
         owner: pull.head.repo.owner.login,
         repo: pull.head.repo.name,
         branch: pull.base.ref,
       });
-      // @TODO: check protected if only protected enabled.
+
+      if (branch.protected) {
+        ghCore.info(
+          `Pull request is against a protected branch and is behind base branch.`
+        );
+        return true;
+      } else {
+        ghCore.info(
+          `Pull request is not against a protected branch, skipping update.`
+        );
+        return false;
+      }
     }
 
     ghCore.info('All checks pass and PR branch is behind base branch.');

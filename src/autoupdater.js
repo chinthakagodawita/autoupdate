@@ -137,9 +137,7 @@ class AutoUpdater {
     });
 
     if (comparison.behind_by === 0) {
-      ghCore.warning(
-        ` > Skipping pull request, up-to-date with base branch.`
-      );
+      ghCore.info(` > Skipping pull request, up-to-date with base branch.`);
       return false;
     }
 

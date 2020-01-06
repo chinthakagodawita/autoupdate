@@ -39,7 +39,10 @@ class AutoUpdater {
     let updated = 0;
     for await (const pullsPage of this.octokit.paginate.iterator(pulls)) {
       for (const pull of pulls.data) {
+        ghCore.startGroup(`PR-${pull.number}`);
         const isUpdated = await this.update(pull);
+        ghCore.endGroup();
+
         if (isUpdated) {
           updated++;
         }
@@ -80,12 +83,12 @@ class AutoUpdater {
     const baseRef = pull.base.ref;
     const headRef = pull.head.ref;
     ghCore.info(
-      ` > Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`
+      `Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`
     );
 
     if (this.config.dryRun()) {
-      ghCore.info(
-        ` > Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`
+      ghCore.warning(
+        `Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`
       );
       return true;
     }
@@ -103,12 +106,10 @@ class AutoUpdater {
     const status = mergeResp.status;
     if (status === 200) {
       ghCore.info(
-        ` > Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`
+        `Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`
       );
     } else if (status === 204) {
-      ghCore.info(
-        ` > Branch update not required, branch is already up-to-date.`
-      );
+      ghCore.info(`Branch update not required, branch is already up-to-date.`);
     }
 
     return true;
@@ -116,12 +117,12 @@ class AutoUpdater {
 
   async prNeedsUpdate(pull) {
     if (pull.merged === true) {
-      ghCore.warning(` > Skipping pull request, already merged.`);
+      ghCore.warning(`Skipping pull request, already merged.`);
       return false;
     }
     if (pull.state !== 'open') {
       ghCore.warning(
-        ` > Skipping pull request, no longer open (current state: ${pull.state}).`
+        `Skipping pull request, no longer open (current state: ${pull.state}).`
       );
       return false;
     }
@@ -137,33 +138,70 @@ class AutoUpdater {
     });
 
     if (comparison.behind_by === 0) {
-      ghCore.warning(
-        ` > Skipping pull request, up-to-date with base branch.`
+      ghCore.info(`Skipping pull request, up-to-date with base branch.`);
+      return false;
+    }
+
+    const prFilter = this.config.pullRequestFilter();
+
+    ghCore.info(
+      `PR_FILTER=${prFilter}, checking if this PR's branch needs to be updated.`
+    );
+
+    if (prFilter === 'labelled') {
+      const labels = this.config.pullRequestLabels();
+      if (labels.length === 0) {
+        ghCore.warning(
+          `Skipping pull request, no labels were defined (env var PR_LABELS is empty or not defined).`
+        );
+        return false;
+      }
+      ghCore.info(
+        `Checking if this PR has a label in our list (${labels.join(', ')}).`
+      );
+
+      if (pull.labels.length === 0) {
+        ghCore.info(`Skipping pull request, it has no labels.`);
+        return false;
+      }
+
+      for (const label of pull.labels) {
+        if (label.name in labels) {
+          ghCore.info(
+            `Pull request has label '${label}' and PR branch is behind base branch.`
+          );
+          return true;
+        }
+      }
+
+      ghCore.info(
+        `Pull request does not match any of the defined labels, skipping update.`
       );
       return false;
     }
 
-    if (this.config.pullRequestFilter() === 'labelled') {
-      const labels = this.config.pullRequestLabels();
-      if (labels.length === 0) {
-        ghCore.warning(
-          ` > Skipping pull request, PR_FILTER=labelled but no labels were defined (env var: PR_LABELS).`
-        );
-        return false;
-      }
-
-      // @TODO: check labels if enabled.
-    }
-
     if (this.config.pullRequestFilter() === 'protected') {
-      const status = this.octokit.repos.getProtectedBranchRequiredStatusChecks({
+      ghCore.info('Checking if this PR is against a protected branch.');
+      const { data: branch } = this.octokit.repos.getBranch({
         owner: pull.head.repo.owner.login,
         repo: pull.head.repo.name,
         branch: pull.base.ref,
       });
-      // @TODO: check protected if only protected enabled.
+
+      if (branch.protected) {
+        ghCore.info(
+          `Pull request is against a protected branch and is behind base branch.`
+        );
+        return true;
+      } else {
+        ghCore.info(
+          `Pull request is not against a protected branch, skipping update.`
+        );
+        return false;
+      }
     }
 
+    ghCore.info('All checks pass and PR branch is behind base branch.');
     return true;
   }
 }

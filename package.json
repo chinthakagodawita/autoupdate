@@ -2,7 +2,7 @@
   "name": "autoupdate-action",
   "version": "0.0.1",
   "description": "A GitHub Action that auto-updates PRs with changes from their base branch.",
-  "main": "src/index.js",
+  "main": "src/autoupdater.js",
   "repository": "https://github.com/chinthakagodawita/autoupdate-action",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",

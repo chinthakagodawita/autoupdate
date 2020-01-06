@@ -68,10 +68,12 @@ class AutoUpdater {
 
   async update(pull) {
     const { ref } = pull.head;
+    ghCore.startGroup(`PR-${pull.number}`);
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
     const prNeedsUpdate = await this.prNeedsUpdate(pull);
     if (!prNeedsUpdate) {
+      ghCore.endGroup();
       return false;
     }
 
@@ -84,9 +86,10 @@ class AutoUpdater {
     );
 
     if (this.config.dryRun()) {
-      ghCore.info(
+      ghCore.warning(
         ` > Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`
       );
+      ghCore.endGroup();
       return true;
     }
 
@@ -111,6 +114,7 @@ class AutoUpdater {
       );
     }
 
+    ghCore.endGroup();
     return true;
   }
 

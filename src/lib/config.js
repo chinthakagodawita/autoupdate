@@ -7,6 +7,11 @@ class ConfigLoader {
     return this.getValue('GITHUB_TOKEN', true);
   }
 
+  dryRun() {
+    const val = this.getValue('DRY_RUN', false, 'false');
+    return val === 'true';
+  }
+
   pullRequestFilter() {
     // one of 'all', 'protected' or 'labelled'.
     return this.getValue('PR_FILTER', false,  'all');

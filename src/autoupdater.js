@@ -82,6 +82,14 @@ class AutoUpdater {
     ghCore.info(
       ` > Updating branch '${ref}' on pull request #${pull.number} with changes from ref '${baseRef}'.`
     );
+
+    if (this.config.dryRun()) {
+      ghCore.info(
+        ` > Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`
+      );
+      return true;
+    }
+
     const mergeResp = await this.octokit.repos.merge({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,

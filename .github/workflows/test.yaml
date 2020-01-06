@@ -10,7 +10,10 @@ on:
   #     - ready_for_review
   #     - unlocked
   #     - reopened
-  push: {}
+  push:
+    branches:
+      - 'unstable-dest'
+      - 'master'
 jobs:
   autoupdate:
     runs-on: ubuntu-latest

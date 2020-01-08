@@ -22,10 +22,6 @@ class ConfigLoader {
     return rawLabels.split(',').map((label) => label.trim());
   }
 
-  mergeType() {
-    return this.getValue('MERGE_TYPE', false,  'merge');
-  }
-
   mergeMsg() {
     const msg = this.getValue(
       'MERGE_MSG',

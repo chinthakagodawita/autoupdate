@@ -78,8 +78,6 @@ class AutoUpdater {
       return false;
     }
 
-    // @TODO: Add support for squash & rebase merge types.
-
     const baseRef = pull.base.ref;
     const headRef = pull.head.ref;
     ghCore.info(
@@ -93,14 +91,18 @@ class AutoUpdater {
       return true;
     }
 
-    const mergeResp = await this.octokit.repos.merge({
+    const mergeMsg = this.config.mergeMsg();
+    const mergeOpts = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
       base: headRef,
       head: baseRef,
-      // @TODO: Add custom commit message support.
-    });
+    };
+    if (mergeMsg !== null && mergeMsg.length > 0) {
+      mergeOpts.commit_message = mergeMsg;
+    }
+    const mergeResp = await this.octokit.repos.merge(mergeOpts);
 
     // See https://developer.github.com/v3/repos/merging/#perform-a-merge
     const status = mergeResp.status;

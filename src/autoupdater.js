@@ -78,8 +78,6 @@ class AutoUpdater {
       return false;
     }
 
-    // @TODO: Add support for squash & rebase merge types.
-
     const baseRef = pull.base.ref;
     const headRef = pull.head.ref;
     ghCore.info(
@@ -93,24 +91,19 @@ class AutoUpdater {
       return true;
     }
 
-    const mergeResp = await this.octokit.repos.merge({
+    const mergeMsg = this.config.mergeMsg();
+    const mergeOpts = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
       base: headRef,
       head: baseRef,
-      // @TODO: Add custom commit message support.
-    });
-
-    // See https://developer.github.com/v3/repos/merging/#perform-a-merge
-    const status = mergeResp.status;
-    if (status === 200) {
-      ghCore.info(
-        `Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`
-      );
-    } else if (status === 204) {
-      ghCore.info(`Branch update not required, branch is already up-to-date.`);
+    };
+    if (mergeMsg !== null && mergeMsg.length > 0) {
+      mergeOpts.commit_message = mergeMsg;
     }
+
+    await this.merge(mergeOpts);
 
     return true;
   }
@@ -203,6 +196,55 @@ class AutoUpdater {
 
     ghCore.info('All checks pass and PR branch is behind base branch.');
     return true;
+  }
+
+  async merge(mergeOpts) {
+    const sleep = (timeMs) => {
+      return new Promise((resolve) => {
+        setTimeout(resolve, timeMs);
+      });
+    };
+
+    const doMerge = async () => {
+      const mergeResp = await this.octokit.repos.merge(mergeOpts);
+
+      // See https://developer.github.com/v3/repos/merging/#perform-a-merge
+      const status = mergeResp.status;
+      if (status === 200) {
+        ghCore.info(
+          `Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`
+        );
+      } else if (status === 204) {
+        ghCore.info(`Branch update not required, branch is already up-to-date.`);
+      }
+
+      return true;
+    };
+
+    const retryCount = this.config.retryCount();
+    const retrySleep = this.config.retrySleep();
+    let retries = 0;
+
+    while (true) {
+      try {
+        ghCore.info('Attempting branch update...');
+        await doMerge();
+        break;
+      } catch (e) {
+        ghCore.error(`Caught error trying to update branch: ${e.message}`);
+
+        if (retries < retryCount) {
+          ghCore.info(
+            `Branch update failed, will retry in ${retrySleep}ms, retry #${retries} of ${retryCount}.`
+          );
+
+          retries++;
+          await sleep(retrySleep);
+        } else {
+          throw e;
+        }
+      }
+    }
   }
 }
 

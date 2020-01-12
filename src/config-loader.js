@@ -22,10 +22,6 @@ class ConfigLoader {
     return rawLabels.split(',').map((label) => label.trim());
   }
 
-  mergeType() {
-    return this.getValue('MERGE_TYPE', false,  'merge');
-  }
-
   mergeMsg() {
     const msg = this.getValue(
       'MERGE_MSG',
@@ -45,6 +41,23 @@ class ConfigLoader {
       false,
       ''
     ).toString().trim();
+  }
+
+  retryCount() {
+    return parseInt(this.getValue(
+      'RETRY_COUNT',
+      false,
+      5
+    ), 10);
+  }
+
+  retrySleep() {
+    // In milliseconds.
+    return parseInt(this.getValue(
+      'RETRY_SLEEP',
+      false,
+      300
+    ), 10);
   }
 
   getValue(key, required = false, defaulVal = null) {

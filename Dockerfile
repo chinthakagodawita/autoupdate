@@ -1,18 +1,25 @@
-FROM node:12-alpine
+FROM node:12-alpine as builder
+
+RUN mkdir -p /opt/autoupdate/dist
+
+WORKDIR /opt/autoupdate
+
+COPY . /opt/autoupdate/
+
+RUN yarn install --frozen-lockfile && yarn run build
+
+FROM node:12-alpine as runner
 
 LABEL com.github.actions.name="Auto-update pull requests with changes from their base branch"
 LABEL com.github.actions.description="A GitHub Action that auto-updates PRs with changes from their base branch"
 LABEL com.github.actions.icon="git-pull-request"
 LABEL com.github.actions.color="blue"
 
-RUN apk add --update --no-cache git ca-certificates \
+RUN apk add --update --no-cache ca-certificates \
   && mkdir -p /opt/autoupdate
 
 WORKDIR /opt/autoupdate
 
-COPY . /opt/autoupdate/
+COPY --from=builder /opt/autoupdate/dist/index.js /opt/autoupdate/index.js
 
-RUN yarn global add --frozen-lockfile 'file:/opt/autoupdate' \
-  && rm -rf /opt/autoupdate
-
-ENTRYPOINT [ "autoupdate-action" ]
+ENTRYPOINT [ "node", "/opt/autoupdate/index.js" ]

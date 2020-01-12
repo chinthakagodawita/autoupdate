@@ -43,6 +43,23 @@ class ConfigLoader {
     ).toString().trim();
   }
 
+  retryCount() {
+    return parseInt(this.getValue(
+      'RETRY_COUNT',
+      false,
+      5
+    ), 10);
+  }
+
+  retrySleep() {
+    // In milliseconds.
+    return parseInt(this.getValue(
+      'RETRY_SLEEP',
+      false,
+      300
+    ), 10);
+  }
+
   getValue(key, required = false, defaulVal = null) {
     if (key in this.env
       && this.env[key] !== null

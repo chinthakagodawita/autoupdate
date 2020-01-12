@@ -12,6 +12,7 @@ on:
   #     - reopened
   push:
     branches:
+      - 'unstable'
       - 'unstable-dest'
       - 'master'
 #    tags: {}

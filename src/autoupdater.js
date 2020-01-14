@@ -99,6 +99,7 @@ class AutoUpdater {
       base: headRef,
       head: baseRef,
     };
+
     if (mergeMsg !== null && mergeMsg.length > 0) {
       mergeOpts.commit_message = mergeMsg;
     }

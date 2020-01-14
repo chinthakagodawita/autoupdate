@@ -1,5 +1,5 @@
-name: 'Auto Update PRs'
-description: 'A GitHub Action that auto-updates PRs with changes from their base branch'
+name: 'Auto Update'
+description: 'A GitHub Action that auto-updates PRs with changes from their destination branch'
 runs:
   using: 'docker'
   image: 'Dockerfile'

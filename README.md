@@ -2,7 +2,7 @@
 **autoupdate** is a GitHub Action that auto-updates pull requests branches whenever changes land on their destination branch.
 
 ## Usage
-Put the 
+Create a file, in your repository, at `.github/workflows/autoupdate.yaml` with the following:
 ```yaml
 name: autoupdate
 on:
@@ -13,7 +13,6 @@ on:
   #   branches:
   #     - master
   #     - unstable
-
 jobs:
   autoupdate:
     name: autoupdate
@@ -61,7 +60,6 @@ Here's an example workflow file with all of the above options specified:
 name: autoupdate
 on:
   push: {}
-
 jobs:
   autoupdate:
     name: autoupdate

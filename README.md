@@ -2,7 +2,6 @@
 **autoupdate** is a GitHub Action that auto-updates pull requests branches whenever changes land on their destination branch.
 
 ## Usage
----
 Put the 
 ```yaml
 name: autoupdate
@@ -31,7 +30,6 @@ For more information on customising event triggers, see [Github's documentation]
 
 
 ## Configuration
----
 The following configuration options are supported. To change any of these, simply specify it as an `env` value in your workflow file.
 
 All configuration values, except `GITHUB_TOKEN`, are optional.
@@ -81,20 +79,17 @@ jobs:
 ```
 
 ## Limitations
----
 * Branch updates events caused by this action will not trigger any subsequent workflows
   * [This is a documented limitation](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows#about-workflow-events) for all GH actions:
   > An action in a workflow run can't trigger a new workflow run. For example, if an action pushes code using the repository's GITHUB_TOKEN, a new workflow will not run even when the repository contains a workflow configured to run when push events occur.
   * There is [an open issue in the Github community forum](https://github.community/t5/GitHub-Actions/Triggering-a-new-workflow-from-another-workflow/td-p/31676) tracking this
 
 ## Coming soon
----
 * Conflict handling
 * Rebase support
 * Label negation support
 * Token support in custom merge messages
 
 ## Also see
----
 * [automerge](https://github.com/pascalgn/automerge-action/) for automatic merging of PRs
 * [autosquash](https://github.com/tibdex/autosquash) for auto-merging with squash support

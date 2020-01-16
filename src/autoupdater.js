@@ -160,9 +160,9 @@ class AutoUpdater {
       }
 
       for (const label of pull.labels) {
-        if (label.name in labels) {
+        if (labels.includes(label.name)) {
           ghCore.info(
-            `Pull request has label '${label}' and PR branch is behind base branch.`
+            `Pull request has label '${label.name}' and PR branch is behind base branch.`
           );
           return true;
         }

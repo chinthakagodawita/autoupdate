@@ -22,6 +22,11 @@ class ConfigLoader {
     return rawLabels.split(',').map((label) => label.trim());
   }
 
+  excludedLabels() {
+    const rawLabels = this.getValue('EXCLUDED_LABELS', false,  '');
+    return rawLabels.split(',').map((label) => label.trim());
+  }
+  
   mergeMsg() {
     const msg = this.getValue(
       'MERGE_MSG',

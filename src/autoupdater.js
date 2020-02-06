@@ -195,6 +195,16 @@ class AutoUpdater {
       }
     }
 
+    const exclidedLabels = this.config.excludedLabels();
+    for (const label of pull.labels) {
+      if (exclidedLabels.includes(label.name)) {
+        ghCore.info(
+          `Pull request has excluded label '${label.name}', skipping update.`
+        );
+        return false;
+      }
+    }
+
     ghCore.info('All checks pass and PR branch is behind base branch.');
     return true;
   }

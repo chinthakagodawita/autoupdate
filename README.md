@@ -48,6 +48,8 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 
 * `PR_LABELS`: Controls which labels _autoupdate_ will look for when monitoring PRs. Only used if `PR_FILTER="labelled"`. This can be either a single label or a comma-separated list of labels.
 
+* `EXCLUDED_LABELS`: Controls which labels _autoupdate_ will ignore for when monitoring PRs. This option works with all `PR_FILTER` options, and it will be evaluated after it. This can be either a single label or a comma-separated list of labels.
+
 * `MERGE_MSG`: A custom message to use when creating the merge commit from the destination branch to your pull request's branch.
 
 * `RETRY_COUNT`: The number of times a branch update should be attempted before _autoupdate_ gives up (default: `"5"`).

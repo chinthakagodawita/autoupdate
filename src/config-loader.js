@@ -60,6 +60,11 @@ class ConfigLoader {
     ), 10);
   }
 
+  mergeConflictAction() {
+    // one of 'fail' or 'ignore'.
+    return this.getValue('MERGE_CONFLICT_ACTION', false,  'fail');
+  }
+
   getValue(key, required = false, defaulVal = null) {
     if (key in this.env
       && this.env[key] !== null

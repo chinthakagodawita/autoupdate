@@ -235,6 +235,7 @@ class AutoUpdater {
         break;
       } catch (e) {
         if (e.message === "Merge conflict" && mergeConflictAction === "ignore") {
+          ghCore.info('Merge conflict detected, skipping update.');
           return;
         } else if (e.message === "Merge conflict") {
           ghCore.error("Merge conflict error trying to update branch");

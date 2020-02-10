@@ -54,6 +54,10 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 
 * `RETRY_SLEEP`: The amount of time (in milliseconds) that _autoupdate_ should wait between branch update attempts (default: `"300"`).
 
+* `MERGE_CONFLICT_ACTION`: Controls how _autoupdate_ handles a merge conflict when updating a PR. Possible values are:
+  * `"fail"` (default): _autoupdate_ will report a failure on each PR that has a merge conflict.
+  * `"ignore"`: _autoupdate_ will silently ignore merge conflicts.
+
 Here's an example workflow file with all of the above options specified:
 
 ```yaml

@@ -200,9 +200,11 @@ class AutoUpdater {
   }
 
   async merge(mergeOpts) {
-    const sleep = (timeMs) => new Promise((resolve) => {
-      setTimeout(resolve, timeMs);
-    });
+    const sleep = (timeMs) => {
+      return new Promise((resolve) => {
+        setTimeout(resolve, timeMs);
+      });
+    };
 
     const doMerge = async () => {
       const mergeResp = await this.octokit.repos.merge(mergeOpts);
@@ -214,7 +216,9 @@ class AutoUpdater {
           `Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`,
         );
       } else if (status === 204) {
-        ghCore.info('Branch update not required, branch is already up-to-date.');
+        ghCore.info(
+          'Branch update not required, branch is already up-to-date.',
+        );
       }
 
       return true;
@@ -232,7 +236,10 @@ class AutoUpdater {
         await doMerge();
         break;
       } catch (e) {
-        if (e.message === 'Merge conflict' && mergeConflictAction === 'ignore') {
+        if (
+          e.message === 'Merge conflict' &&
+          mergeConflictAction === 'ignore'
+        ) {
           ghCore.info('Merge conflict detected, skipping update.');
           break;
         }

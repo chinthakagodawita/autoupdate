@@ -1,9 +1,9 @@
 {
   "name": "autoupdate-action",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A GitHub Action that auto-updates PRs with changes from their base branch.",
   "main": "src/autoupdater.js",
-  "repository": "https://github.com/chinthakagodawita/autoupdate-action",
+  "repository": "https://github.com/chinthakagodawita/autoupdate",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",
   "bin": {
@@ -21,7 +21,9 @@
   "devDependencies": {
     "eslint": "^7.4.0",
     "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
-    "mocha": "^8.0.1"
+    "mocha": "^8.0.1",
+    "prettier": "2.0.5"
   }
 }

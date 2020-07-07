@@ -10,6 +10,7 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
+    "lint": "eslint . && prettier --list-different bin/** src/**",
     "build": "ncc build bin/cli.js --out dist"
   },
   "dependencies": {

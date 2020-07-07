@@ -17,5 +17,11 @@
     "@actions/github": "^2.0.0",
     "@zeit/ncc": "^0.21.0",
     "argparse": "^1.0.10"
+  },
+  "devDependencies": {
+    "eslint": "^7.4.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "mocha": "^8.0.1"
   }
 }

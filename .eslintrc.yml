@@ -8,8 +8,6 @@ parserOptions:
   ecmaVersion: 2020
   sourceType: module
 rules:
-  semi: error
-  no-tabs: error
   no-console: error
   no-plusplus: off
   no-await-in-loop: off

@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const ghCore = require('@actions/core');
 
-const AutoUpdater = require('../src/autoupdater');
+const Router = require('../src/router');
 const config = require('../src/config-loader');
 
 async function main() {
@@ -22,17 +22,8 @@ async function main() {
     );
   }
 
-  const updater = new AutoUpdater(config, eventData, true);
-
-  if (eventName === 'pull_request') {
-    await updater.handlePullRequest();
-  } else if (eventName === 'push') {
-    await updater.handlePush();
-  } else {
-    throw new Error(
-      `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`,
-    );
-  }
+  const router = new Router(config, eventData);
+  await router.route(eventName);
 }
 
 if (require.main === module) {

@@ -18,21 +18,21 @@ class ConfigLoader {
   }
 
   pullRequestLabels() {
-    const rawLabels = this.getValue('PR_LABELS', false, '');
+    const rawLabels = this.getValue('PR_LABELS', false, '').toString().trim();
+    if (rawLabels === '') {
+      return [];
+    }
     return rawLabels.split(',').map((label) => label.trim());
   }
 
   mergeMsg() {
     const msg = this.getValue('MERGE_MSG', false, '').toString().trim();
-
-    if (msg === '') {
-      return null;
-    }
-    return msg;
+    return msg === '' ? null : msg;
   }
 
   conflictMsg() {
-    return this.getValue('CONFLICT_MSG', false, '').toString().trim();
+    const msg = this.getValue('CONFLICT_MSG', false, '').toString().trim();
+    return msg === '' ? null : msg;
   }
 
   retryCount() {

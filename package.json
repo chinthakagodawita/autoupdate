@@ -11,6 +11,7 @@
   },
   "scripts": {
     "lint": "eslint . && prettier --list-different bin/** src/**",
+    "test": "jest",
     "build": "ncc build bin/cli.js --out dist"
   },
   "dependencies": {
@@ -24,7 +25,8 @@
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
-    "mocha": "^8.0.1",
+    "eslint-plugin-jest": "^23.18.0",
+    "jest": "^26.1.0",
     "prettier": "2.0.5"
   }
 }

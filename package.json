@@ -10,12 +10,14 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "ncc build bin/cli.js --out dist"
+    "build": "tsc && ncc build bin/cli.js --out dist"
   },
   "dependencies": {
     "@actions/core": "^1.2.0",
     "@actions/github": "^2.0.0",
+    "@octokit/types": "^5.1.0",
     "@zeit/ncc": "^0.21.0",
-    "argparse": "^1.0.10"
+    "argparse": "^1.0.10",
+    "typescript": "^3.9.6"
   }
 }

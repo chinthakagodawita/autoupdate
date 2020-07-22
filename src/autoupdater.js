@@ -15,12 +15,13 @@ class AutoUpdater {
 
     if (!ref.startsWith('refs/heads/')) {
       ghCore.warning('Push event was not on a branch, skipping.');
-      return;
+      return 0;
     }
 
     const baseBranch = ref.replace('refs/heads/', '');
 
-    const pulls = await this.octokit.pulls.list({
+    let updated = 0;
+    const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
       owner: repository.owner.name,
       repo: repository.name,
       base: baseBranch,
@@ -28,16 +29,9 @@ class AutoUpdater {
       sort: 'updated',
       direction: 'desc',
     });
-
-    if (pulls.data.length === 0) {
-      ghCore.info(
-        `Base branch '${baseBranch}' has no pull requests that point to it, skipping autoupdate.`,
-      );
-      return;
-    }
-
-    let updated = 0;
-    for await (const pullsPage of this.octokit.paginate.iterator(pulls)) {
+    for await (const pullsPage of this.octokit.paginate.iterator(
+      paginatorOpts,
+    )) {
       for (const pull of pullsPage.data) {
         ghCore.startGroup(`PR-${pull.number}`);
         const isUpdated = await this.update(pull);
@@ -52,6 +46,8 @@ class AutoUpdater {
     ghCore.info(
       `Auto update complete, ${updated} pull request(s) that point to base branch '${baseBranch}' were updated.`,
     );
+
+    return updated;
   }
 
   async handlePullRequest() {
@@ -67,6 +63,8 @@ class AutoUpdater {
     } else {
       ghCore.info('Auto update complete, no changes were made.');
     }
+
+    return isUpdated;
   }
 
   async update(pull) {
@@ -176,7 +174,7 @@ class AutoUpdater {
 
     if (this.config.pullRequestFilter() === 'protected') {
       ghCore.info('Checking if this PR is against a protected branch.');
-      const { data: branch } = this.octokit.repos.getBranch({
+      const { data: branch } = await this.octokit.repos.getBranch({
         owner: pull.head.repo.owner.login,
         repo: pull.head.repo.name,
         branch: pull.base.ref,

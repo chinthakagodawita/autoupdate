@@ -12,6 +12,7 @@
   "scripts": {
     "lint": "eslint . && prettier --list-different bin/** src/**",
     "test": "jest",
+    "test:watch": "jest --watchAll",
     "build": "ncc build bin/cli.js --out dist"
   },
   "dependencies": {
@@ -21,12 +22,14 @@
     "argparse": "^1.0.10"
   },
   "devDependencies": {
+    "@octokit/fixtures": "^21.0.8",
     "eslint": "^7.4.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.18.0",
     "jest": "^26.1.0",
+    "nock": "^13.0.2",
     "prettier": "2.0.5"
   }
 }

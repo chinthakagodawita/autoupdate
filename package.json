@@ -30,5 +30,12 @@
     "jest": "^26.1.0",
     "nock": "^13.0.2",
     "prettier": "2.0.5"
+  },
+  "jest": {
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8",
+    "testEnvironment": "node"
   }
 }

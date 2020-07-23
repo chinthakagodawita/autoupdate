@@ -22,7 +22,6 @@
     "argparse": "^1.0.10"
   },
   "devDependencies": {
-    "@octokit/fixtures": "^21.0.8",
     "eslint": "^7.4.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",

@@ -5,8 +5,6 @@ if ('GITHUB_TOKEN' in process.env) {
 }
 
 const nock = require('nock');
-// const github = require('@actions/github');
-// const fixtures = require("@octokit/fixtures");
 const config = require('../src/config-loader');
 const AutoUpdater = require('../src/autoupdater');
 

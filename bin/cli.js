@@ -3,12 +3,12 @@ const fs = require('fs');
 
 const ghCore = require('@actions/core');
 
-const AutoUpdater = require('../src/autoupdater');
+const Router = require('../src/router');
 const config = require('../src/config-loader');
 
 async function main() {
-  const eventPath = process.env['GITHUB_EVENT_PATH'];
-  const eventName = process.env['GITHUB_EVENT_NAME'];
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const eventName = process.env.GITHUB_EVENT_NAME;
 
   const rawEventData = fs.readFileSync(eventPath, 'utf8');
   const eventData = JSON.parse(rawEventData);
@@ -18,25 +18,12 @@ async function main() {
 
   if (config.dryRun()) {
     ghCore.info(
-      `Detected DRY_RUN=true, running in dry mode - no merges will be made.`
+      'Detected DRY_RUN=true, running in dry mode - no merges will be made.',
     );
   }
 
-  const updater = new AutoUpdater(
-    config,
-    eventData,
-    true,
-  );
-
-  if (eventName === 'pull_request') {
-    await updater.handlePullRequest();
-  } else if (eventName === 'push') {
-    await updater.handlePush();
-  } else {
-    throw new Error(
-      `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`
-    );
-  }
+  const router = new Router(config, eventData);
+  await router.route(eventName);
 }
 
 if (require.main === module) {

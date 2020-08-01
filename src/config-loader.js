@@ -1,71 +1,66 @@
-class ConfigLoader {
-  constructor() {
+'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.ConfigLoader = void 0;
+var ConfigLoader = /** @class */ (function () {
+  function ConfigLoader() {
     this.env = process.env;
   }
-
-  githubToken() {
+  ConfigLoader.prototype.githubToken = function () {
     return this.getValue('GITHUB_TOKEN', true);
-  }
-
-  dryRun() {
-    const val = this.getValue('DRY_RUN', false, 'false');
+  };
+  ConfigLoader.prototype.dryRun = function () {
+    var val = this.getValue('DRY_RUN', false, 'false');
     return val === 'true';
-  }
-
-  pullRequestFilter() {
+  };
+  ConfigLoader.prototype.pullRequestFilter = function () {
     // one of 'all', 'protected' or 'labelled'.
     return this.getValue('PR_FILTER', false, 'all');
-  }
-
-  pullRequestLabels() {
-    const rawLabels = this.getValue('PR_LABELS', false, '').toString().trim();
+  };
+  ConfigLoader.prototype.pullRequestLabels = function () {
+    var rawLabels = this.getValue('PR_LABELS', false, '').toString().trim();
     if (rawLabels === '') {
       return [];
     }
-    return rawLabels.split(',').map((label) => label.trim());
-  }
-
-  mergeMsg() {
-    const msg = this.getValue('MERGE_MSG', false, '').toString().trim();
+    return rawLabels.split(',').map(function (label) {
+      return label.trim();
+    });
+  };
+  ConfigLoader.prototype.mergeMsg = function () {
+    var msg = this.getValue('MERGE_MSG', false, '').toString().trim();
     return msg === '' ? null : msg;
-  }
-
-  conflictMsg() {
-    const msg = this.getValue('CONFLICT_MSG', false, '').toString().trim();
+  };
+  ConfigLoader.prototype.conflictMsg = function () {
+    var msg = this.getValue('CONFLICT_MSG', false, '').toString().trim();
     return msg === '' ? null : msg;
-  }
-
-  retryCount() {
+  };
+  ConfigLoader.prototype.retryCount = function () {
     return parseInt(this.getValue('RETRY_COUNT', false, 5), 10);
-  }
-
-  retrySleep() {
+  };
+  ConfigLoader.prototype.retrySleep = function () {
     // In milliseconds.
     return parseInt(this.getValue('RETRY_SLEEP', false, 300), 10);
-  }
-
-  mergeConflictAction() {
+  };
+  ConfigLoader.prototype.mergeConflictAction = function () {
     // one of 'fail' or 'ignore'.
     return this.getValue('MERGE_CONFLICT_ACTION', false, 'fail');
-  }
-
-  getValue(key, required = false, defaulVal = null) {
-    if (
-      key in this.env &&
-      this.env[key] !== null &&
-      this.env[key] !== undefined
-    ) {
+  };
+  ConfigLoader.prototype.getValue = function (key, required, defaultVal) {
+    if (required === void 0) {
+      required = false;
+    }
+    if (key in this.env && this.env[key] !== null && this.env[key] !== void 0) {
       return this.env[key];
     }
-
     if (required) {
       throw new Error(
-        `Environment variable '${key}' was not provided, please define it and try again.`,
+        "Environment variable '" +
+          key +
+          "' was not provided, please define it and try again.",
       );
     }
-
-    return defaulVal;
-  }
-}
-
-module.exports = new ConfigLoader();
+    return defaultVal || null;
+  };
+  return ConfigLoader;
+})();
+exports.ConfigLoader = ConfigLoader;
+exports.default = new ConfigLoader();

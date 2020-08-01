@@ -384,7 +384,7 @@ describe('test `update`', () => {
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
-    const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue();
+    const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue(true);
     const needsUpdate = await updater.update(<any>validPull);
 
     const expectedMergeOpts = {
@@ -408,12 +408,13 @@ describe('test `update`', () => {
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
-    const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue();
+    const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue(true);
     const needsUpdate = await updater.update(<any>validPull);
 
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
       repo: validPull.head.repo.name,
+      commit_message: null,
       base: validPull.head.ref,
       head: validPull.base.ref,
     };

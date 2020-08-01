@@ -1,5 +1,5 @@
-import github from '@actions/github';
-import ghCore from '@actions/core';
+import * as github from '@actions/github';
+import * as ghCore from '@actions/core';
 import Octokit from '@octokit/rest';
 import { ConfigLoader } from './config-loader';
 
@@ -11,8 +11,6 @@ export class AutoUpdater {
   constructor(config: ConfigLoader, eventData: any) {
     this.eventData = eventData;
     this.config = config;
-    console.log('hi sara');
-    console.log(this.config.githubToken());
     this.octokit = new github.GitHub(this.config.githubToken());
   }
 
@@ -206,7 +204,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts: any): Promise<void> {
+  async merge(mergeOpts: any): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);
@@ -269,5 +267,6 @@ export class AutoUpdater {
         }
       }
     }
+    return true;
   }
 }

@@ -25,16 +25,18 @@
     "typescript": "^3.9.7"
   },
   "devDependencies": {
-    "eslint": "^7.4.0",
+    "@types/jest": "^26.0.8",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "eslint": "^7.6.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.18.0",
     "jest": "^26.2.2",
-    "@types/jest": "^26.0.8",
-    "ts-jest": "^26.1.4",
     "nock": "^13.0.2",
-    "prettier": "2.0.5"
+    "prettier": "2.0.5",
+    "ts-jest": "^26.1.4"
   },
   "jest": {
     "preset": "ts-jest",

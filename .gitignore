@@ -14,3 +14,5 @@ bin/local.js
 /coverage
 
 dist
+
+**/*.js

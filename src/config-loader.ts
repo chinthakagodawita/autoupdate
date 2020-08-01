@@ -62,7 +62,7 @@ export class ConfigLoader {
       );
     }
 
-    return defaultVal || null;
+    return defaultVal;
   }
 }
 

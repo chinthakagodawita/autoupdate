@@ -69,8 +69,8 @@ const tests = [
 for (const testDef of tests) {
   test(`test that '${testDef.name}' returns the correct environment value`, () => {
     // All environment variables are technically strings.
-    let dummyValue;
-    let expectedValue;
+    let dummyValue: string;
+    let expectedValue: string | number | boolean | string[];
     switch (testDef.type) {
       case 'string':
         dummyValue = 'some-dummy-value';
@@ -93,7 +93,9 @@ for (const testDef of tests) {
         break;
 
       default:
-        fail(`Unknown config test '${testDef.type}' for function '${testDef.name}'`);
+        fail(
+          `Unknown config test '${testDef.type}' for function '${testDef.name}'`,
+        );
     }
 
     process.env[testDef.envVar] = dummyValue;
@@ -112,7 +114,7 @@ for (const testDef of tests) {
         config[testDef.name]();
       }).toThrowError(
         `Environment variable '${testDef.envVar}' was not provided, please define it and try again.`,
-      )
+      );
     });
   } else {
     test(`test that '${testDef.name}' returns its default value if an env var is not defined`, () => {

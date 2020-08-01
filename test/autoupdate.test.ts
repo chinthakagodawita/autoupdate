@@ -4,9 +4,9 @@ if ('GITHUB_TOKEN' in process.env) {
   delete process.env.GITHUB_TOKEN;
 }
 
-const nock = require('nock');
-const config = require('../src/config-loader');
-const AutoUpdater = require('../src/autoupdater');
+import nock from 'nock';
+import config from '../src/config-loader';
+import { AutoUpdater } from '../src/autoupdater';
 
 jest.mock('../src/config-loader');
 
@@ -24,12 +24,12 @@ const validPull = {
   state: 'open',
   labels: [
     {
-      'id': 1,
-      'name': 'one',
+      id: 1,
+      name: 'one',
     },
     {
-      'id': 2,
-      'name': 'two',
+      id: 2,
+      name: 'two',
     },
   ],
   base: {
@@ -53,8 +53,9 @@ describe('test `prNeedsUpdate`', () => {
   test('pull request has already been merged', async () => {
     const pull = {
       merged: true,
-    }
+    };
 
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(pull);
     expect(needsUpdate).toEqual(false);
@@ -64,8 +65,9 @@ describe('test `prNeedsUpdate`', () => {
     const pull = {
       merged: false,
       state: 'closed',
-    }
+    };
 
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(pull);
     expect(needsUpdate).toEqual(false);
@@ -78,6 +80,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 0,
       });
 
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(validPull);
 
@@ -86,8 +89,9 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('no pull request labels were configured', async () => {
-    config.pullRequestFilter.mockReturnValue('labelled');
-    config.pullRequestLabels.mockReturnValue([]);
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue([]);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -105,11 +109,9 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request has no labels', async () => {
-    config.pullRequestFilter.mockReturnValue('labelled');
-    config.pullRequestLabels.mockReturnValue([
-      'one',
-      'two',
-    ]);
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue(['one', 'two']);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -129,11 +131,9 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request labels do not match', async () => {
-    config.pullRequestFilter.mockReturnValue('labelled');
-    config.pullRequestLabels.mockReturnValue([
-      'three',
-      'four',
-    ]);
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -151,11 +151,9 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request labels do match', async () => {
-    config.pullRequestFilter.mockReturnValue('labelled');
-    config.pullRequestLabels.mockReturnValue([
-      'three',
-      'four',
-    ]);
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -178,7 +176,8 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request is against protected branch', async () => {
-    config.pullRequestFilter.mockReturnValue('protected');
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -202,7 +201,8 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request is not against protected branch', async () => {
-    config.pullRequestFilter.mockReturnValue('protected');
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -226,7 +226,8 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('no filters configured', async () => {
-    config.pullRequestFilter.mockReturnValue('all');
+    // const config = new ConfigLoader();
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -260,6 +261,7 @@ describe('test `handlePush`', () => {
     const event = cloneEvent();
     event.ref = 'not-a-branch';
 
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, event);
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
@@ -271,12 +273,15 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch without any PRs', async () => {
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, dummyEvent);
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
 
     const scope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`)
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
       .reply(200, []);
 
     const updated = await updater.handlePush();
@@ -287,6 +292,7 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch with PRs', async () => {
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, dummyEvent);
 
     const pullsMock = [];
@@ -295,13 +301,15 @@ describe('test `handlePush`', () => {
       pullsMock.push({
         id: i,
         number: i,
-      })
+      });
     }
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
 
     const scope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`)
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
       .reply(200, pullsMock);
 
     const updated = await updater.handlePush();
@@ -314,6 +322,7 @@ describe('test `handlePush`', () => {
 
 describe('test `handlePullRequest`', () => {
   test('pull request event with an update triggered', async () => {
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {
       action: 'dummy-action',
     });
@@ -326,6 +335,7 @@ describe('test `handlePullRequest`', () => {
   });
 
   test('pull request event without an update', async () => {
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {
       action: 'dummy-action',
     });
@@ -340,19 +350,25 @@ describe('test `handlePullRequest`', () => {
 
 describe('test `update`', () => {
   test('when a pull request does not need an update', async () => {
+    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
-    const updateSpy = jest.spyOn(updater, 'prNeedsUpdate').mockResolvedValue(false);
-    const needsUpdate = await updater.update(validPull);
+    const updateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(false);
+    const needsUpdate = await updater.update(<any>validPull);
     expect(needsUpdate).toEqual(false);
     expect(updateSpy).toHaveBeenCalledTimes(1);
   });
 
   test('dry run mode', async () => {
-    config.dryRun.mockReturnValue(true);
+    // const config = new ConfigLoader();
+    (config.dryRun as jest.Mock).mockReturnValue(true);
     const updater = new AutoUpdater(config, {});
-    const updateSpy = jest.spyOn(updater, 'prNeedsUpdate').mockResolvedValue(true);
+    const updateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge');
-    const needsUpdate = await updater.update(validPull);
+    const needsUpdate = await updater.update(<any>validPull);
 
     expect(needsUpdate).toEqual(true);
     expect(updateSpy).toHaveBeenCalledTimes(1);
@@ -360,13 +376,16 @@ describe('test `update`', () => {
   });
 
   test('custom merge message', async () => {
+    // const config = new ConfigLoader();
     const mergeMsg = 'dummy-merge-msg';
-    config.mergeMsg.mockReturnValue(mergeMsg);
+    (config.mergeMsg as jest.Mock).mockReturnValue(mergeMsg);
     const updater = new AutoUpdater(config, {});
 
-    const updateSpy = jest.spyOn(updater, 'prNeedsUpdate').mockResolvedValue(true);
+    const updateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue();
-    const needsUpdate = await updater.update(validPull);
+    const needsUpdate = await updater.update(<any>validPull);
 
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
@@ -382,12 +401,15 @@ describe('test `update`', () => {
   });
 
   test('merge with no message', async () => {
-    config.mergeMsg.mockReturnValue(null);
+    // const config = new ConfigLoader();
+    (config.mergeMsg as jest.Mock).mockReturnValue(null);
     const updater = new AutoUpdater(config, {});
 
-    const updateSpy = jest.spyOn(updater, 'prNeedsUpdate').mockResolvedValue(true);
+    const updateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue();
-    const needsUpdate = await updater.update(validPull);
+    const needsUpdate = await updater.update(<any>validPull);
 
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
@@ -431,9 +453,10 @@ describe('test `merge`', () => {
 
   for (const responseTest of responseCodeTests) {
     test(responseTest.description, async () => {
-      config.retryCount.mockReturnValue(0);
-      config.retrySleep.mockReturnValue(0);
-      config.mergeConflictAction.mockReturnValue(null);
+      // const config = new ConfigLoader();
+      (config.retryCount as jest.Mock).mockReturnValue(0);
+      (config.retrySleep as jest.Mock).mockReturnValue(0);
+      (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
       const updater = new AutoUpdater(config, {});
 
       const scope = nock('https://api.github.com:443')
@@ -455,9 +478,10 @@ describe('test `merge`', () => {
   }
 
   test('retry logic', async () => {
+    // const config = new ConfigLoader();
     const retryCount = 3;
-    config.retryCount.mockReturnValue(retryCount);
-    config.mergeConflictAction.mockReturnValue(null);
+    (config.retryCount as jest.Mock).mockReturnValue(retryCount);
+    (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
     const updater = new AutoUpdater(config, {});
 
     const scopes = [];
@@ -480,8 +504,9 @@ describe('test `merge`', () => {
   });
 
   test('ignore merge conflicts', async () => {
-    config.retryCount.mockReturnValue(0);
-    config.mergeConflictAction.mockReturnValue('ignore');
+    // const config = new ConfigLoader();
+    (config.retryCount as jest.Mock).mockReturnValue(0);
+    (config.mergeConflictAction as jest.Mock).mockReturnValue('ignore');
     const updater = new AutoUpdater(config, {});
 
     const scope = nock('https://api.github.com:443')
@@ -500,8 +525,9 @@ describe('test `merge`', () => {
   });
 
   test('not ignoring merge conflicts', async () => {
-    config.retryCount.mockReturnValue(0);
-    config.mergeConflictAction.mockReturnValue(null);
+    // const config = new ConfigLoader();
+    (config.retryCount as jest.Mock).mockReturnValue(0);
+    (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
     const updater = new AutoUpdater(config, {});
 
     const scope = nock('https://api.github.com:443')

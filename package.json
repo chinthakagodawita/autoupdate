@@ -10,7 +10,7 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "tsc && ncc build bin/cli.js --out dist",
+    "build": "tsc && ncc build bin/cli.ts --out dist",
     "lint": "eslint . && prettier --list-different bin/** src/**",
     "test": "jest",
     "test:watch": "jest --watchAll"
@@ -19,9 +19,10 @@
     "@actions/core": "^1.2.4",
     "@actions/github": "^2.0.0",
     "@octokit/types": "^5.1.0",
-    "typescript": "^3.9.6",
+    "@types/node": "^14.0.27",
     "@zeit/ncc": "^0.22.3",
-    "argparse": "^1.0.10"
+    "argparse": "^1.0.10",
+    "typescript": "^3.9.7"
   },
   "devDependencies": {
     "eslint": "^7.4.0",
@@ -29,11 +30,14 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.18.0",
-    "jest": "^26.1.0",
+    "jest": "^26.2.2",
+    "@types/jest": "^26.0.8",
+    "ts-jest": "^26.1.4",
     "nock": "^13.0.2",
     "prettier": "2.0.5"
   },
   "jest": {
+    "preset": "ts-jest",
     "clearMocks": true,
     "collectCoverage": true,
     "coverageDirectory": "coverage",

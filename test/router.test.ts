@@ -24,7 +24,6 @@ test('invalid event name', async () => {
 });
 
 test('"push" events', async () => {
-  // const config = new ConfigLoader();
   const router = new Router(config, {});
   expect(AutoUpdater).toHaveBeenCalledTimes(1);
 
@@ -35,7 +34,6 @@ test('"push" events', async () => {
 });
 
 test('"pull_request" events', async () => {
-  // const config = new ConfigLoader();
   const router = new Router(config, {});
   expect(AutoUpdater).toHaveBeenCalledTimes(1);
 

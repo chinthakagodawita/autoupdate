@@ -454,7 +454,6 @@ describe('test `merge`', () => {
 
   for (const responseTest of responseCodeTests) {
     test(responseTest.description, async () => {
-      // const config = new ConfigLoader();
       (config.retryCount as jest.Mock).mockReturnValue(0);
       (config.retrySleep as jest.Mock).mockReturnValue(0);
       (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
@@ -479,7 +478,6 @@ describe('test `merge`', () => {
   }
 
   test('retry logic', async () => {
-    // const config = new ConfigLoader();
     const retryCount = 3;
     (config.retryCount as jest.Mock).mockReturnValue(retryCount);
     (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
@@ -505,7 +503,6 @@ describe('test `merge`', () => {
   });
 
   test('ignore merge conflicts', async () => {
-    // const config = new ConfigLoader();
     (config.retryCount as jest.Mock).mockReturnValue(0);
     (config.mergeConflictAction as jest.Mock).mockReturnValue('ignore');
     const updater = new AutoUpdater(config, {});
@@ -526,7 +523,6 @@ describe('test `merge`', () => {
   });
 
   test('not ignoring merge conflicts', async () => {
-    // const config = new ConfigLoader();
     (config.retryCount as jest.Mock).mockReturnValue(0);
     (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
     const updater = new AutoUpdater(config, {});

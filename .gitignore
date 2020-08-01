@@ -12,3 +12,5 @@ node_modules/
 /events
 bin/local.js
 /coverage
+
+dist

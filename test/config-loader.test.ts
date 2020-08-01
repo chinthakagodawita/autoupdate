@@ -100,7 +100,7 @@ for (const testDef of tests) {
 
     process.env[testDef.envVar] = dummyValue;
     const config = new ConfigLoader();
-    // Ignore noImplicitAny so we invoke the function by string index.
+    // Ignore noImplicitAny so we can invoke the function by string index.
     // @ts-ignore
     const value = config[testDef.name]();
     expect(value).toEqual(expectedValue);
@@ -113,7 +113,7 @@ for (const testDef of tests) {
     test(`test that '${testDef.name}' throws an error if an env var is not defined`, () => {
       const config = new ConfigLoader();
       expect(() => {
-        // Ignore noImplicitAny so we invoke the function by string index.
+        // Ignore noImplicitAny so we can invoke the function by string index.
         // @ts-ignore
         config[testDef.name]();
       }).toThrowError(
@@ -123,7 +123,7 @@ for (const testDef of tests) {
   } else {
     test(`test that '${testDef.name}' returns its default value if an env var is not defined`, () => {
       const config = new ConfigLoader();
-      // Ignore noImplicitAny so we invoke the function by string index.
+      // Ignore noImplicitAny so we can invoke the function by string index.
       // @ts-ignore
       const value = config[testDef.name]();
       expect(value).toEqual(testDef.default);

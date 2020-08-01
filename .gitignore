@@ -15,4 +15,5 @@ bin/local.js
 
 dist
 
-**/*.js
+src/*.js
+bin/*.js

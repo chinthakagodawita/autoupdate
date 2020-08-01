@@ -402,7 +402,7 @@ describe('test `update`', () => {
 
   test('merge with no message', async () => {
     // const config = new ConfigLoader();
-    (config.mergeMsg as jest.Mock).mockReturnValue(null);
+    (config.mergeMsg as jest.Mock).mockReturnValue('');
     const updater = new AutoUpdater(config, {});
 
     const updateSpy = jest
@@ -414,7 +414,7 @@ describe('test `update`', () => {
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
       repo: validPull.head.repo.name,
-      commit_message: null,
+      commit_message: '',
       base: validPull.head.ref,
       head: validPull.base.ref,
     };

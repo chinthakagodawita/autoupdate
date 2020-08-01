@@ -1,0 +1,18 @@
+env:
+  es2020: true
+  node: true
+  jest/globals: true
+extends:
+  - airbnb-base
+  - prettier
+plugins:
+  - jest
+parserOptions:
+  ecmaVersion: 2020
+  sourceType: module
+rules:
+  no-console: error
+  no-plusplus: off
+  no-await-in-loop: off
+  no-constant-condition: off
+  no-restricted-syntax: off

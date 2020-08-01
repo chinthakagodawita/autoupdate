@@ -1,23 +1,43 @@
 {
   "name": "autoupdate-action",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A GitHub Action that auto-updates PRs with changes from their base branch.",
   "main": "src/autoupdater.js",
-  "repository": "https://github.com/chinthakagodawita/autoupdate-action",
+  "repository": "https://github.com/chinthakagodawita/autoupdate",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",
   "bin": {
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "tsc && ncc build bin/cli.js --out dist"
+    "build": "tsc && ncc build bin/cli.js --out dist",
+    "lint": "eslint . && prettier --list-different bin/** src/**",
+    "test": "jest",
+    "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "@actions/core": "^1.2.0",
+    "@actions/core": "^1.2.4",
     "@actions/github": "^2.0.0",
     "@octokit/types": "^5.1.0",
-    "@zeit/ncc": "^0.21.0",
-    "argparse": "^1.0.10",
-    "typescript": "^3.9.6"
+    "typescript": "^3.9.6",
+    "@zeit/ncc": "^0.22.3",
+    "argparse": "^1.0.10"
+  },
+  "devDependencies": {
+    "eslint": "^7.4.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.18.0",
+    "jest": "^26.1.0",
+    "nock": "^13.0.2",
+    "prettier": "2.0.5"
+  },
+  "jest": {
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8",
+    "testEnvironment": "node"
   }
 }

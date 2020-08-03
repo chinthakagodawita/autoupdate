@@ -55,7 +55,6 @@ describe('test `prNeedsUpdate`', () => {
       merged: true,
     };
 
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(pull);
     expect(needsUpdate).toEqual(false);
@@ -67,7 +66,6 @@ describe('test `prNeedsUpdate`', () => {
       state: 'closed',
     };
 
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(pull);
     expect(needsUpdate).toEqual(false);
@@ -80,7 +78,6 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 0,
       });
 
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(validPull);
 
@@ -89,7 +86,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('no pull request labels were configured', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue([]);
 
@@ -109,7 +105,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request has no labels', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['one', 'two']);
 
@@ -131,7 +126,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request labels do not match', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
 
@@ -151,7 +145,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request labels do match', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
 
@@ -176,7 +169,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request is against protected branch', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
 
     const comparePr = nock('https://api.github.com:443')
@@ -201,7 +193,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('pull request is not against protected branch', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
 
     const comparePr = nock('https://api.github.com:443')
@@ -226,7 +217,6 @@ describe('test `prNeedsUpdate`', () => {
   });
 
   test('no filters configured', async () => {
-    // const config = new ConfigLoader();
     (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
 
     const comparePr = nock('https://api.github.com:443')
@@ -261,7 +251,6 @@ describe('test `handlePush`', () => {
     const event = cloneEvent();
     event.ref = 'not-a-branch';
 
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, event);
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
@@ -273,7 +262,6 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch without any PRs', async () => {
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, dummyEvent);
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
@@ -292,7 +280,6 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch with PRs', async () => {
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, dummyEvent);
 
     const pullsMock = [];
@@ -322,7 +309,6 @@ describe('test `handlePush`', () => {
 
 describe('test `handlePullRequest`', () => {
   test('pull request event with an update triggered', async () => {
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {
       action: 'dummy-action',
     });
@@ -335,7 +321,6 @@ describe('test `handlePullRequest`', () => {
   });
 
   test('pull request event without an update', async () => {
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {
       action: 'dummy-action',
     });
@@ -350,7 +335,6 @@ describe('test `handlePullRequest`', () => {
 
 describe('test `update`', () => {
   test('when a pull request does not need an update', async () => {
-    // const config = new ConfigLoader();
     const updater = new AutoUpdater(config, {});
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
@@ -361,7 +345,6 @@ describe('test `update`', () => {
   });
 
   test('dry run mode', async () => {
-    // const config = new ConfigLoader();
     (config.dryRun as jest.Mock).mockReturnValue(true);
     const updater = new AutoUpdater(config, {});
     const updateSpy = jest
@@ -376,7 +359,6 @@ describe('test `update`', () => {
   });
 
   test('custom merge message', async () => {
-    // const config = new ConfigLoader();
     const mergeMsg = 'dummy-merge-msg';
     (config.mergeMsg as jest.Mock).mockReturnValue(mergeMsg);
     const updater = new AutoUpdater(config, {});
@@ -401,7 +383,6 @@ describe('test `update`', () => {
   });
 
   test('merge with no message', async () => {
-    // const config = new ConfigLoader();
     (config.mergeMsg as jest.Mock).mockReturnValue('');
     const updater = new AutoUpdater(config, {});
 

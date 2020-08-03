@@ -1,0 +1,24 @@
+env:
+  es2020: true
+  node: true
+  jest/globals: true
+parser: '@typescript-eslint/parser'
+extends:
+  - 'prettier/@typescript-eslint'
+  - 'plugin:prettier/recommended'
+  - 'plugin:@typescript-eslint/eslint-recommended'
+  - 'plugin:@typescript-eslint/recommended'
+plugins:
+  - jest
+  - '@typescript-eslint'
+parserOptions:
+  ecmaVersion: 2020
+  sourceType: module
+rules:
+  no-console: error
+  no-plusplus: off
+  no-await-in-loop: off
+  no-constant-condition: off
+  no-restricted-syntax: off
+  '@typescript-eslint/ban-ts-comment': off
+  '@typescript-eslint/no-explicit-any': off

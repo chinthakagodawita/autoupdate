@@ -51,6 +51,7 @@ export class ConfigLoader {
     return this.getValue('MERGE_CONFLICT_ACTION', false, 'fail');
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   getValue(key: string, required = false, defaultVal?: any): any {
     if (
       key in this.env &&

@@ -1,4 +1,4 @@
-#! node
+#!/usr/bin/env node
 import fs from 'fs';
 
 import ghCore from '@actions/core';

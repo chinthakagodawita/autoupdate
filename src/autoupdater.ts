@@ -97,8 +97,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts = {
-      commit_message: '',
+    const mergeOpts: Octokit.RequestOptions & Octokit.ReposMergeParams = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.

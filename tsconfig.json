@@ -4,7 +4,11 @@
     "target": "ES2019",
     "module": "commonjs",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/*", "bin/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["**/*.test.ts"]

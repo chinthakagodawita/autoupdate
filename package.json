@@ -2,7 +2,7 @@
   "name": "autoupdate-action",
   "version": "1.0.0",
   "description": "A GitHub Action that auto-updates PRs with changes from their base branch.",
-  "main": "src/autoupdater.js",
+  "main": "src/autoupdater.ts",
   "repository": "https://github.com/chinthakagodawita/autoupdate",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",
@@ -10,7 +10,7 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "ncc build bin/cli.ts --out dist",
+    "build": "ncc build --out dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"

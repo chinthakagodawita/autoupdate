@@ -395,7 +395,6 @@ describe('test `update`', () => {
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
       repo: validPull.head.repo.name,
-      commit_message: '',
       base: validPull.head.ref,
       head: validPull.base.ref,
     };

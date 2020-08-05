@@ -10,7 +10,7 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "ncc build --out dist",
+    "build": "ncc build bin/cli.ts --out dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"

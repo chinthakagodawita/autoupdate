@@ -1,14 +1,21 @@
-const github = require('@actions/github');
-const ghCore = require('@actions/core');
+import * as github from '@actions/github';
+import * as ghCore from '@actions/core';
+import Octokit from '@octokit/rest';
+import { ConfigLoader } from './config-loader';
 
-class AutoUpdater {
-  constructor(config, eventData) {
+export class AutoUpdater {
+  eventData: any;
+  config: ConfigLoader;
+  octokit: github.GitHub;
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  constructor(config: ConfigLoader, eventData: any) {
     this.eventData = eventData;
     this.config = config;
     this.octokit = new github.GitHub(this.config.githubToken());
   }
 
-  async handlePush() {
+  async handlePush(): Promise<number> {
     const { ref, repository } = this.eventData;
 
     ghCore.info(`Handling push event on ref '${ref}'`);
@@ -50,7 +57,7 @@ class AutoUpdater {
     return updated;
   }
 
-  async handlePullRequest() {
+  async handlePullRequest(): Promise<boolean> {
     const { action } = this.eventData;
 
     ghCore.info(`Handling pull_request event triggered by action '${action}'`);
@@ -67,7 +74,7 @@ class AutoUpdater {
     return isUpdated;
   }
 
-  async update(pull) {
+  async update(pull: Octokit.PullsListResponseItem): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -90,7 +97,7 @@ class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts = {
+    const mergeOpts: Octokit.RequestOptions & Octokit.ReposMergeParams = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -107,7 +114,8 @@ class AutoUpdater {
     return true;
   }
 
-  async prNeedsUpdate(pull) {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async prNeedsUpdate(pull: any): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -197,8 +205,10 @@ class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts) {
-    const sleep = (timeMs) => {
+  async merge(
+    mergeOpts: Octokit.RequestOptions & Octokit.ReposMergeParams,
+  ): Promise<boolean> {
+    const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);
       });
@@ -260,7 +270,6 @@ class AutoUpdater {
         }
       }
     }
+    return true;
   }
 }
-
-module.exports = AutoUpdater;

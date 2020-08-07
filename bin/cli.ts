@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-const fs = require('fs');
+import fs from 'fs';
 
-const ghCore = require('@actions/core');
+import ghCore from '@actions/core';
 
-const Router = require('../src/router');
-const config = require('../src/config-loader');
+import { Router } from '../src/router';
+import config from '../src/config-loader';
 
 async function main() {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   const eventName = process.env.GITHUB_EVENT_NAME;
 
-  const rawEventData = fs.readFileSync(eventPath, 'utf8');
+  const rawEventData = fs.readFileSync(<any>eventPath, 'utf8');
   const eventData = JSON.parse(rawEventData);
 
   ghCore.debug(`EVENT NAME: ${eventName}`);

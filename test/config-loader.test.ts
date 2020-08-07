@@ -1,4 +1,4 @@
-/* eslint-disable global-require */
+import { ConfigLoader } from '../src/config-loader';
 
 const tests = [
   {
@@ -69,8 +69,8 @@ const tests = [
 for (const testDef of tests) {
   test(`test that '${testDef.name}' returns the correct environment value`, () => {
     // All environment variables are technically strings.
-    let dummyValue;
-    let expectedValue;
+    let dummyValue: string;
+    let expectedValue: string | number | boolean | string[];
     switch (testDef.type) {
       case 'string':
         dummyValue = 'some-dummy-value';
@@ -93,11 +93,15 @@ for (const testDef of tests) {
         break;
 
       default:
-        fail(`Unknown config test '${testDef.type}' for function '${testDef.name}'`);
+        fail(
+          `Unknown config test '${testDef.type}' for function '${testDef.name}'`,
+        );
     }
 
     process.env[testDef.envVar] = dummyValue;
-    const config = require('../src/config-loader');
+    const config = new ConfigLoader();
+    // Ignore noImplicitAny so we can invoke the function by string index.
+    // @ts-ignore
     const value = config[testDef.name]();
     expect(value).toEqual(expectedValue);
 
@@ -107,16 +111,20 @@ for (const testDef of tests) {
 
   if (testDef.required) {
     test(`test that '${testDef.name}' throws an error if an env var is not defined`, () => {
-      const config = require('../src/config-loader');
+      const config = new ConfigLoader();
       expect(() => {
+        // Ignore noImplicitAny so we can invoke the function by string index.
+        // @ts-ignore
         config[testDef.name]();
       }).toThrowError(
         `Environment variable '${testDef.envVar}' was not provided, please define it and try again.`,
-      )
+      );
     });
   } else {
     test(`test that '${testDef.name}' returns its default value if an env var is not defined`, () => {
-      const config = require('../src/config-loader');
+      const config = new ConfigLoader();
+      // Ignore noImplicitAny so we can invoke the function by string index.
+      // @ts-ignore
       const value = config[testDef.name]();
       expect(value).toEqual(testDef.default);
     });

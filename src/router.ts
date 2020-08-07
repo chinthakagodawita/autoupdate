@@ -1,8 +1,13 @@
-const AutoUpdater = require('./autoupdater');
+import { AutoUpdater } from '../src/autoupdater';
+import { ConfigLoader } from '../src/config-loader';
 
-class Router {
-  constructor(config, eventData) {
-    this.updater = new AutoUpdater(config, eventData, true);
+export class Router {
+  eventData: any;
+  updater: AutoUpdater;
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  constructor(config: ConfigLoader, eventData: any) {
+    this.updater = new AutoUpdater(config, eventData);
   }
 
   /**
@@ -11,7 +16,7 @@ class Router {
    * @param eventName
    * @returns {Promise<void>}
    */
-  async route(eventName) {
+  async route(eventName: string | undefined): Promise<void> {
     if (eventName === 'pull_request') {
       await this.updater.handlePullRequest();
     } else if (eventName === 'push') {
@@ -23,5 +28,3 @@ class Router {
     }
   }
 }
-
-module.exports = Router;

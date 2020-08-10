@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-import fs from 'fs';
-
-import ghCore from '@actions/core';
+import * as fs from 'fs';
+import * as ghCore from '@actions/core';
 
 import { Router } from '../src/router';
 import config from '../src/config-loader';

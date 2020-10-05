@@ -1,18 +1,19 @@
 import * as github from '@actions/github';
+import { GitHub } from '@actions/github/lib/utils';
 import * as ghCore from '@actions/core';
-import Octokit from '@octokit/rest';
+import * as octokit from '@octokit/types';
 import { ConfigLoader } from './config-loader';
 
 export class AutoUpdater {
   eventData: any;
   config: ConfigLoader;
-  octokit: github.GitHub;
+  octokit: InstanceType<typeof GitHub>;
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   constructor(config: ConfigLoader, eventData: any) {
     this.eventData = eventData;
     this.config = config;
-    this.octokit = new github.GitHub(this.config.githubToken());
+    this.octokit = github.getOctokit(this.config.githubToken());
   }
 
   async handlePush(): Promise<number> {
@@ -39,20 +40,30 @@ export class AutoUpdater {
     for await (const pullsPage of this.octokit.paginate.iterator(
       paginatorOpts,
     )) {
-      for (const pull of pullsPage.data) {
-        ghCore.startGroup(`PR-${pull.number}`);
-        const isUpdated = await this.update(pull);
-        ghCore.endGroup();
-
-        if (isUpdated) {
-          updated++;
-        }
-      }
+      updated = await this.updatePullRequests(pullsPage);
     }
 
     ghCore.info(
       `Auto update complete, ${updated} pull request(s) that point to base branch '${baseBranch}' were updated.`,
     );
+
+    return updated;
+  }
+
+  async updatePullRequests(
+    pullsPage: octokit.OctokitResponse<any>,
+  ): Promise<number> {
+    let updated = 0;
+
+    for (const pull of pullsPage.data) {
+      ghCore.startGroup(`PR-${pull.number}`);
+      const isUpdated = await this.update(pull);
+      ghCore.endGroup();
+
+      if (isUpdated) {
+        updated++;
+      }
+    }
 
     return updated;
   }
@@ -74,7 +85,7 @@ export class AutoUpdater {
     return isUpdated;
   }
 
-  async update(pull: Octokit.PullsListResponseItem): Promise<boolean> {
+  async update(pull: octokit.PullsUpdateResponseData): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -97,7 +108,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: Octokit.RequestOptions & Octokit.ReposMergeParams = {
+    const mergeOpts: any = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -205,9 +216,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(
-    mergeOpts: Octokit.RequestOptions & Octokit.ReposMergeParams,
-  ): Promise<boolean> {
+  async merge(mergeOpts: any): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);
@@ -215,13 +224,13 @@ export class AutoUpdater {
     };
 
     const doMerge = async () => {
-      const mergeResp = await this.octokit.repos.merge(mergeOpts);
+      const mergeResp: any = await this.octokit.repos.merge(mergeOpts);
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;
       if (status === 200) {
         ghCore.info(
-          `Branch update succesful, new branch HEAD: ${mergeResp.data.sha}.`,
+          `Branch update successful, new branch HEAD: ${mergeResp.data.sha}.`,
         );
       } else if (status === 204) {
         ghCore.info(

@@ -40,7 +40,7 @@ export class AutoUpdater {
     for await (const pullsPage of this.octokit.paginate.iterator(
       paginatorOpts,
     )) {
-      updated = await this.updatePullRequests(pullsPage);
+      updated = updated + (await this.updatePullRequests(pullsPage));
     }
 
     ghCore.info(

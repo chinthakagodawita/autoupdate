@@ -4,6 +4,14 @@ import * as ghCore from '@actions/core';
 import * as octokit from '@octokit/types';
 import { ConfigLoader } from './config-loader';
 
+interface MergeOpts {
+  owner: string;
+  repo: string;
+  base: string;
+  head: string;
+  commit_message?: string;
+}
+
 export class AutoUpdater {
   eventData: any;
   config: ConfigLoader;
@@ -37,33 +45,24 @@ export class AutoUpdater {
       sort: 'updated',
       direction: 'desc',
     });
-    for await (const pullsPage of this.octokit.paginate.iterator(
-      paginatorOpts,
-    )) {
-      updated = updated + (await this.updatePullRequests(pullsPage));
+
+    let pullsPage: octokit.OctokitResponse<any>;
+    for await (pullsPage of this.octokit.paginate.iterator(paginatorOpts)) {
+      let pull: octokit.PullsUpdateResponseData;
+      for (pull of pullsPage.data) {
+        ghCore.startGroup(`PR-${pull.number}`);
+        const isUpdated = await this.update(pull);
+        ghCore.endGroup();
+
+        if (isUpdated) {
+          updated++;
+        }
+      }
     }
 
     ghCore.info(
       `Auto update complete, ${updated} pull request(s) that point to base branch '${baseBranch}' were updated.`,
     );
-
-    return updated;
-  }
-
-  async updatePullRequests(
-    pullsPage: octokit.OctokitResponse<any>,
-  ): Promise<number> {
-    let updated = 0;
-
-    for (const pull of pullsPage.data) {
-      ghCore.startGroup(`PR-${pull.number}`);
-      const isUpdated = await this.update(pull);
-      ghCore.endGroup();
-
-      if (isUpdated) {
-        updated++;
-      }
-    }
 
     return updated;
   }
@@ -108,7 +107,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: any = {
+    const mergeOpts: MergeOpts = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -224,7 +223,9 @@ export class AutoUpdater {
     };
 
     const doMerge = async () => {
-      const mergeResp: any = await this.octokit.repos.merge(mergeOpts);
+      const mergeResp: octokit.OctokitResponse<any> = await this.octokit.repos.merge(
+        mergeOpts,
+      );
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;

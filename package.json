@@ -21,7 +21,6 @@
     "@octokit/types": "^5.5.0",
     "@types/node": "^12.12.6",
     "@zeit/ncc": "^0.22.3",
-    "argparse": "^1.0.10",
     "typescript": "^3.9.7"
   },
   "devDependencies": {

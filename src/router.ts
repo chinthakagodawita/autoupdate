@@ -5,8 +5,11 @@ export class Router {
   eventData: any;
   updater: AutoUpdater;
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  constructor(config: ConfigLoader, eventData: any) {
+  constructor(
+    config: ConfigLoader,
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    eventData: any
+  ) {
     this.updater = new AutoUpdater(config, eventData);
   }
 

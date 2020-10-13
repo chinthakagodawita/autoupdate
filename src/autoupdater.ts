@@ -17,8 +17,11 @@ export class AutoUpdater {
   config: ConfigLoader;
   octokit: InstanceType<typeof GitHub>;
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  constructor(config: ConfigLoader, eventData: any) {
+  constructor(
+    config: ConfigLoader,
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    eventData: any
+  ) {
     this.eventData = eventData;
     this.config = config;
     this.octokit = github.getOctokit(this.config.githubToken());
@@ -107,7 +110,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: MergeOpts = {
+    const mergeOpts: octokit.RequestParameters & MergeOpts = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -124,8 +127,10 @@ export class AutoUpdater {
     return true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  async prNeedsUpdate(pull: any): Promise<boolean> {
+  async prNeedsUpdate(
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    pull: any
+  ): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -215,7 +220,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts: any): Promise<boolean> {
+  async merge(mergeOpts: octokit.RequestParameters & MergeOpts): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);

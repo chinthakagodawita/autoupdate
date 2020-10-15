@@ -20,7 +20,7 @@ export class AutoUpdater {
   constructor(
     config: ConfigLoader,
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    eventData: any
+    eventData: any,
   ) {
     this.eventData = eventData;
     this.config = config;
@@ -129,7 +129,7 @@ export class AutoUpdater {
 
   async prNeedsUpdate(
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    pull: any
+    pull: any,
   ): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
@@ -220,7 +220,9 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts: octokit.RequestParameters & MergeOpts): Promise<boolean> {
+  async merge(
+    mergeOpts: octokit.RequestParameters & MergeOpts,
+  ): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);

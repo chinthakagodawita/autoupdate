@@ -16,8 +16,8 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
+    "@actions/github": "^4.0.0",
     "@actions/core": "^1.2.6",
-    "@actions/github": "^2.0.0",
     "@octokit/types": "^5.5.0",
     "@types/node": "^12.12.6",
     "@zeit/ncc": "^0.22.3",

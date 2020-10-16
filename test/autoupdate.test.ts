@@ -12,6 +12,7 @@ jest.mock('../src/config-loader');
 
 beforeEach(() => {
   jest.resetAllMocks();
+  jest.spyOn(config, 'githubToken').mockImplementation(() => 'test-token');
 });
 
 const owner = 'chinthakagodawita';

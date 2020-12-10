@@ -72,6 +72,19 @@ describe('test `prNeedsUpdate`', () => {
     expect(needsUpdate).toEqual(false);
   });
 
+  test('originating repo of pull request has been deleted', async () => {
+    const pull = Object.assign({}, validPull, {
+      head: {
+        label: head,
+        ref: head,
+        repo: null,
+      },
+    });
+    const updater = new AutoUpdater(config, {});
+    const needsUpdate = await updater.prNeedsUpdate(pull);
+    expect(needsUpdate).toEqual(false);
+  });
+
   test('pull request is not behind', async () => {
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)

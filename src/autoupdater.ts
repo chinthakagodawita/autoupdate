@@ -141,6 +141,12 @@ export class AutoUpdater {
       );
       return false;
     }
+    if (!pull.head.repo) {
+      ghCore.warning(
+        `Skipping pull request, fork appears to have been deleted.`,
+      );
+      return false;
+    }
 
     const { data: comparison } = await this.octokit.repos.compareCommits({
       owner: pull.head.repo.owner.login,

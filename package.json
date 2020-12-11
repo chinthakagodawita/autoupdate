@@ -19,7 +19,7 @@
     "@actions/github": "^4.0.0",
     "@actions/core": "^1.2.6",
     "@octokit/types": "^5.5.0",
-    "@types/node": "^12.12.6",
+    "@types/node": "^14.14.12",
     "@zeit/ncc": "^0.22.3",
     "typescript": "^3.9.7"
   },

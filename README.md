@@ -82,6 +82,14 @@ jobs:
           RETRY_SLEEP: "300"
 ```
 
+## Examples
+
+See [chinthakagodawita/autoupdate-test/pulls](https://github.com/chinthakagodawita/autoupdate-test/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc) for a repository where autoupdate is enabled. This is currently configured to only run on PRs that have the `autoupdate` tag added to them.
+
+Here's a screenshot:
+
+![An example of autoupdate running on a pull request](/docs/images/autoupdate-example.png)
+
 ## Limitations
 * Branch updates events caused by this action will not trigger any subsequent workflows
   * [This is a documented limitation](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows#about-workflow-events) for all GH actions:

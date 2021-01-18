@@ -99,9 +99,9 @@ describe('test `prNeedsUpdate`', () => {
     expect(scope.isDone()).toEqual(true);
   });
 
-  test('no excluded labels were configured', async () => {
+  test('excluded labels were configured but not found', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
-    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+    (config.excludedLabels as jest.Mock).mockReturnValue(['label']);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -146,6 +146,7 @@ describe('test `prNeedsUpdate`', () => {
     expect(needsUpdate).toEqual(false);
     expect(scope.isDone()).toEqual(true);
     expect(config.excludedLabels).toHaveBeenCalled();
+
     // The excluded labels check happens before we check any filters so these
     // functions should never be called.
     expect(config.pullRequestFilter).toHaveBeenCalledTimes(0);

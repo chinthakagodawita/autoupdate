@@ -163,12 +163,28 @@ export class AutoUpdater {
       return false;
     }
 
+    // First check if this PR has an excluded label on it and skip further
+    // processing if so.
+    const excludedLabels = this.config.excludedLabels();
+    if (excludedLabels.length > 0) {
+      for (const label of pull.labels) {
+        if (excludedLabels.includes(label.name)) {
+          ghCore.info(
+            `Pull request has excluded label '${label.name}', skipping update.`,
+          );
+          return false;
+        }
+      }
+    }
+
     const prFilter = this.config.pullRequestFilter();
 
     ghCore.info(
       `PR_FILTER=${prFilter}, checking if this PR's branch needs to be updated.`,
     );
 
+    // If PR_FILTER=labelled, check that this PR has _any_ of the labels
+    // specified in that configuration option.
     if (prFilter === 'labelled') {
       const labels = this.config.pullRequestLabels();
       if (labels.length === 0) {

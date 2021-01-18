@@ -27,6 +27,16 @@ export class ConfigLoader {
     return rawLabels.split(',').map((label: string) => label.trim());
   }
 
+  excludedLabels(): Array<string> {
+    const rawLabels = this.getValue('EXCLUDED_LABELS', false, '')
+      .toString()
+      .trim();
+    if (rawLabels === '') {
+      return [];
+    }
+    return rawLabels.split(',').map((label: string) => label.trim());
+  }
+
   mergeMsg(): string {
     const msg = this.getValue('MERGE_MSG', false, '').toString().trim();
     return msg === '' ? null : msg;

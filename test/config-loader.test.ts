@@ -30,6 +30,13 @@ const tests = [
     type: 'list',
   },
   {
+    name: 'excludedLabels',
+    envVar: 'EXCLUDED_LABELS',
+    required: false,
+    default: [],
+    type: 'list',
+  },
+  {
     name: 'mergeMsg',
     envVar: 'MERGE_MSG',
     required: false,

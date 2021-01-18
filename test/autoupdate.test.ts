@@ -99,9 +99,64 @@ describe('test `prNeedsUpdate`', () => {
     expect(scope.isDone()).toEqual(true);
   });
 
+  test('excluded labels were configured but not found', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
+    (config.excludedLabels as jest.Mock).mockReturnValue(['label']);
+
+    const scope = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, {});
+    const needsUpdate = await updater.prNeedsUpdate(validPull);
+
+    expect(needsUpdate).toEqual(true);
+    expect(scope.isDone()).toEqual(true);
+    expect(config.pullRequestFilter).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
+  });
+
+  test('excluded labels exist', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue([]);
+    (config.excludedLabels as jest.Mock).mockReturnValue(['dependencies']);
+
+    const scope = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, {});
+    const pull = clonePull();
+    pull.labels = [
+      {
+        id: 3,
+        name: 'autoupdate',
+      },
+      {
+        id: 4,
+        name: 'dependencies',
+      },
+    ];
+    const needsUpdate = await updater.prNeedsUpdate(pull);
+
+    expect(needsUpdate).toEqual(false);
+    expect(scope.isDone()).toEqual(true);
+    expect(config.excludedLabels).toHaveBeenCalled();
+
+    // The excluded labels check happens before we check any filters so these
+    // functions should never be called.
+    expect(config.pullRequestFilter).toHaveBeenCalledTimes(0);
+    expect(config.pullRequestLabels).toHaveBeenCalledTimes(0);
+  });
+
   test('no pull request labels were configured', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue([]);
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -116,11 +171,13 @@ describe('test `prNeedsUpdate`', () => {
     expect(scope.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
     expect(config.pullRequestLabels).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 
   test('pull request has no labels', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['one', 'two']);
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -137,11 +194,13 @@ describe('test `prNeedsUpdate`', () => {
     expect(scope.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
     expect(config.pullRequestLabels).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 
   test('pull request labels do not match', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -156,11 +215,13 @@ describe('test `prNeedsUpdate`', () => {
     expect(scope.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
     expect(config.pullRequestLabels).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 
   test('pull request labels do match', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const scope = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -184,6 +245,7 @@ describe('test `prNeedsUpdate`', () => {
 
   test('pull request is against protected branch', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -204,10 +266,12 @@ describe('test `prNeedsUpdate`', () => {
     expect(comparePr.isDone()).toEqual(true);
     expect(getBranch.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 
   test('pull request is not against protected branch', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('protected');
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -228,10 +292,12 @@ describe('test `prNeedsUpdate`', () => {
     expect(comparePr.isDone()).toEqual(true);
     expect(getBranch.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 
   test('no filters configured', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
 
     const comparePr = nock('https://api.github.com:443')
       .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
@@ -245,6 +311,7 @@ describe('test `prNeedsUpdate`', () => {
     expect(needsUpdate).toEqual(true);
     expect(comparePr.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
   });
 });
 

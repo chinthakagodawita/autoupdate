@@ -326,6 +326,7 @@ describe('test `handlePush`', () => {
       name: repo,
     },
   };
+
   const cloneEvent = () => JSON.parse(JSON.stringify(dummyEvent));
 
   test('push event on a non-branch', async () => {
@@ -603,5 +604,21 @@ describe('test `merge`', () => {
     );
 
     expect(scope.isDone()).toEqual(true);
+  });
+
+  test('autoupdate continues with valid PRs if merging throws an error', async () => {
+    const mergeMsg = 'dummy-merge-msg';
+    (config.mergeMsg as jest.Mock).mockReturnValue(mergeMsg);
+    (config.dryRun as jest.Mock).mockReturnValue(false);
+
+    const updater = new AutoUpdater(config, {});
+
+    jest.spyOn(updater, 'prNeedsUpdate').mockResolvedValue(true);
+    jest.spyOn(updater, 'merge').mockImplementation(() => {
+      throw new Error('Resource not accessible by integration');
+    });
+
+    const updated = await updater.update(<any>validPull);
+    expect(updated).toEqual(false);
   });
 });

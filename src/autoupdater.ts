@@ -122,7 +122,12 @@ export class AutoUpdater {
       mergeOpts.commit_message = mergeMsg;
     }
 
-    await this.merge(mergeOpts);
+    try {
+      await this.merge(mergeOpts);
+    } catch (e) {
+      ghCore.info('Autoupdate will attempt to update any remaining PRs.');
+      return false;
+    }
 
     return true;
   }

@@ -125,7 +125,10 @@ export class AutoUpdater {
     try {
       await this.merge(mergeOpts);
     } catch (e) {
-      ghCore.info('Autoupdate will attempt to update any remaining PRs.');
+      ghCore.error(
+        `Caught error running merge, skipping and continuing with remaining PRs`,
+      );
+      ghCore.setFailed(e);
       return false;
     }
 

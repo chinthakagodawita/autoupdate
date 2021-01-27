@@ -19,6 +19,16 @@ const owner = 'chinthakagodawita';
 const repo = 'not-a-real-repo';
 const base = 'master';
 const head = 'develop';
+const branch = 'not-a-real-branch';
+const dummyEvent = {
+  ref: `refs/heads/${branch}`,
+  repository: {
+    owner: {
+      name: owner,
+    },
+    name: repo,
+  },
+};
 const validPull = {
   number: 1,
   merged: false,
@@ -316,16 +326,6 @@ describe('test `prNeedsUpdate`', () => {
 });
 
 describe('test `handlePush`', () => {
-  const branch = 'not-a-real-branch';
-  const dummyEvent = {
-    ref: `refs/heads/${branch}`,
-    repository: {
-      owner: {
-        name: owner,
-      },
-      name: repo,
-    },
-  };
   const cloneEvent = () => JSON.parse(JSON.stringify(dummyEvent));
 
   test('push event on a non-branch', async () => {
@@ -603,5 +603,78 @@ describe('test `merge`', () => {
     );
 
     expect(scope.isDone()).toEqual(true);
+  });
+
+  test('continue if merging throws an error', async () => {
+    (config.mergeMsg as jest.Mock).mockReturnValue(null);
+    const updater = new AutoUpdater(config, dummyEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 5;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+        base: {
+          ref: base,
+          label: base,
+        },
+        head: {
+          label: head,
+          ref: head,
+          repo: {
+            name: repo,
+            owner: {
+              login: owner,
+            },
+          },
+        },
+      });
+    }
+
+    const needsUpdateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(true);
+
+    const pullsScope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const mergeScopes = [];
+    for (let i = 0; i < expectedPulls; i++) {
+      let httpStatus = 200;
+      let response: Record<string, unknown> = {
+        data: {
+          sha: 'dummy-sha',
+        },
+      };
+
+      // Throw an error halfway through the PR list to confirm that autoupdate
+      // continues to the next PR.
+      if (i === 3) {
+        httpStatus = 403;
+        response = {
+          message: 'Resource not accessible by integration',
+        };
+      }
+
+      mergeScopes.push(
+        nock('https://api.github.com:443')
+          .post(`/repos/${owner}/${repo}/merges`)
+          .reply(httpStatus, response),
+      );
+    }
+
+    const updated = await updater.handlePush();
+
+    // Only 4 PRs should have been updated, not 5.
+    expect(updated).toBe(expectedPulls - 1);
+    expect(needsUpdateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(pullsScope.isDone()).toBe(true);
+    for (const scope of mergeScopes) {
+      expect(scope.isDone()).toBe(true);
+    }
   });
 });

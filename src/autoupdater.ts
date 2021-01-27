@@ -122,7 +122,15 @@ export class AutoUpdater {
       mergeOpts.commit_message = mergeMsg;
     }
 
-    await this.merge(mergeOpts);
+    try {
+      await this.merge(mergeOpts);
+    } catch (e) {
+      ghCore.error(
+        `Caught error running merge, skipping and continuing with remaining PRs`,
+      );
+      ghCore.setFailed(e);
+      return false;
+    }
 
     return true;
   }

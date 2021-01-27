@@ -7,6 +7,7 @@ if ('GITHUB_TOKEN' in process.env) {
 import nock from 'nock';
 import config from '../src/config-loader';
 import { AutoUpdater } from '../src/autoupdater';
+import { PullsUpdateResponseData } from '@octokit/types';
 
 jest.mock('../src/config-loader');
 
@@ -67,7 +68,9 @@ describe('test `prNeedsUpdate`', () => {
     };
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(pull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (pull as unknown) as PullsUpdateResponseData,
+    );
     expect(needsUpdate).toEqual(false);
   });
 
@@ -78,7 +81,9 @@ describe('test `prNeedsUpdate`', () => {
     };
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(pull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (pull as unknown) as PullsUpdateResponseData,
+    );
     expect(needsUpdate).toEqual(false);
   });
 
@@ -91,7 +96,9 @@ describe('test `prNeedsUpdate`', () => {
       },
     });
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(pull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (pull as unknown) as PullsUpdateResponseData,
+    );
     expect(needsUpdate).toEqual(false);
   });
 
@@ -103,7 +110,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(false);
     expect(scope.isDone()).toEqual(true);
@@ -120,7 +129,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(true);
     expect(scope.isDone()).toEqual(true);
@@ -175,7 +186,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(false);
     expect(scope.isDone()).toEqual(true);
@@ -219,7 +232,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(false);
     expect(scope.isDone()).toEqual(true);
@@ -270,7 +285,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(true);
     expect(comparePr.isDone()).toEqual(true);
@@ -296,7 +313,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(false);
     expect(comparePr.isDone()).toEqual(true);
@@ -316,7 +335,9 @@ describe('test `prNeedsUpdate`', () => {
       });
 
     const updater = new AutoUpdater(config, {});
-    const needsUpdate = await updater.prNeedsUpdate(validPull);
+    const needsUpdate = await updater.prNeedsUpdate(
+      (validPull as unknown) as PullsUpdateResponseData,
+    );
 
     expect(needsUpdate).toEqual(true);
     expect(comparePr.isDone()).toEqual(true);

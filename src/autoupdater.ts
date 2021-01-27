@@ -135,10 +135,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async prNeedsUpdate(
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    pull: any,
-  ): Promise<boolean> {
+  async prNeedsUpdate(pull: octokit.PullsUpdateResponseData): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;

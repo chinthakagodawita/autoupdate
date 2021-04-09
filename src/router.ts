@@ -24,9 +24,11 @@ export class Router {
       await this.updater.handlePullRequest();
     } else if (eventName === 'push') {
       await this.updater.handlePush();
+    } else if (eventName === 'workflow_run') {
+      await this.updater.handleWorkflowRun();
     } else {
       throw new Error(
-        `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`,
+        `Unknown event type '${eventName}', only 'push', 'pull_request' and 'workflow_run' are supported.`,
       );
     }
   }

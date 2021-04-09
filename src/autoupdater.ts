@@ -3,6 +3,7 @@ import { GitHub } from '@actions/github/lib/utils';
 import * as ghCore from '@actions/core';
 import * as octokit from '@octokit/types';
 import { ConfigLoader } from './config-loader';
+import { PayloadRepository } from '@actions/github/lib/interfaces';
 import { Endpoints } from '@octokit/types';
 
 type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
@@ -28,6 +29,54 @@ export class AutoUpdater {
 
     ghCore.info(`Handling push event on ref '${ref}'`);
 
+    const updated = await this.pulls(ref, repository);
+
+    return updated;
+  }
+
+  async handlePullRequest(): Promise<boolean> {
+    const { action } = this.eventData;
+
+    ghCore.info(`Handling pull_request event triggered by action '${action}'`);
+
+    const isUpdated = await this.update(this.eventData.pull_request);
+    if (isUpdated) {
+      ghCore.info(
+        'Auto update complete, pull request branch was updated with changes from the base branch.',
+      );
+    } else {
+      ghCore.info('Auto update complete, no changes were made.');
+    }
+
+    return isUpdated;
+  }
+
+  async handleWorkflowRun(): Promise<number> {
+    const { workflow_run, repository } = this.eventData;
+    const branch = workflow_run.head_branch;
+
+    if (branch.length === 0) {
+      ghCore.warning('Push event was not on a branch, skipping.');
+      return 0;
+    }
+
+    ghCore.info(
+      `Handling workflow-run event triggered by '${workflow_run.event}' on '${branch}'`,
+    );
+
+    if (workflow_run.pull_requests.length !== 0) {
+      ghCore.warning(
+        'Workflow_run event triggered via pull_request workflow not yet supported.',
+      );
+      return 0;
+    }
+
+    const updated = await this.pulls(`refs/heads/${branch}`, repository);
+
+    return updated;
+  }
+
+  async pulls(ref: string, repository: PayloadRepository): Promise<number> {
     if (!ref.startsWith('refs/heads/')) {
       ghCore.warning('Push event was not on a branch, skipping.');
       return 0;
@@ -37,7 +86,7 @@ export class AutoUpdater {
 
     let updated = 0;
     const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
-      owner: repository.owner.name,
+      owner: repository.owner.name || repository.owner.login,
       repo: repository.name,
       base: baseBranch,
       state: 'open',
@@ -66,24 +115,7 @@ export class AutoUpdater {
     return updated;
   }
 
-  async handlePullRequest(): Promise<boolean> {
-    const { action } = this.eventData;
-
-    ghCore.info(`Handling pull_request event triggered by action '${action}'`);
-
-    const isUpdated = await this.update(this.eventData.pull_request);
-    if (isUpdated) {
-      ghCore.info(
-        'Auto update complete, pull request branch was updated with changes from the base branch.',
-      );
-    } else {
-      ghCore.info('Auto update complete, no changes were made.');
-    }
-
-    return isUpdated;
-  }
-
-  async update(pull: PullRequestResponse['data']): Promise<boolean> {
+  async update(pull: octokit.PullsUpdateResponseData): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 

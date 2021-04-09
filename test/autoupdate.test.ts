@@ -27,6 +27,19 @@ const dummyEvent = {
   ref: `refs/heads/${branch}`,
   repository: {
     owner: {
+      login: owner,
+    },
+    name: repo,
+  },
+};
+const dummyWorkflowRunPushEvent = {
+  workflow_run: {
+    head_branch: branch,
+    event: 'push',
+    pull_requests: [],
+  },
+  repository: {
+    owner: {
       name: owner,
     },
     name: repo,
@@ -478,6 +491,89 @@ describe('test `handlePush`', () => {
     expect(updated).toEqual(expectedPulls);
     expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
     expect(scope.isDone()).toEqual(true);
+  });
+});
+
+describe('test `handleWorkflowRun`', () => {
+  const cloneEvent = () =>
+    JSON.parse(JSON.stringify(dummyWorkflowRunPushEvent));
+
+  test('workflow_run event by push event on a non-branch', async () => {
+    const event = cloneEvent();
+    event.workflow_run.head_branch = '';
+
+    const updater = new AutoUpdater(config, event);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test('workflow_run event by push event on a branch without any PRs', async () => {
+    const updater = new AutoUpdater(config, dummyWorkflowRunPushEvent);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, []);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event by push event on a branch with PRs', async () => {
+    const updater = new AutoUpdater(config, dummyWorkflowRunPushEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 5;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(expectedPulls);
+    expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event by pull_request event not supported', async () => {
+    const event = cloneEvent();
+    event.workflow_run.pull_requests = [
+      {
+        url: 'https://api.github.com/repos/github/hello-world/pulls/1',
+        id: 1,
+      },
+    ];
+
+    const updater = new AutoUpdater(config, event);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
   });
 });
 

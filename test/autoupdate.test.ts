@@ -7,7 +7,9 @@ if ('GITHUB_TOKEN' in process.env) {
 import nock from 'nock';
 import config from '../src/config-loader';
 import { AutoUpdater } from '../src/autoupdater';
-import { PullsUpdateResponseData } from '@octokit/types';
+import { Endpoints } from '@octokit/types';
+
+type pullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 
 jest.mock('../src/config-loader');
 
@@ -28,6 +30,30 @@ const dummyEvent = {
       name: owner,
     },
     name: repo,
+  },
+};
+const invalidLabelPull = {
+  number: 1,
+  merged: false,
+  state: 'open',
+  labels: [
+    {
+      id: 1,
+    },
+  ],
+  base: {
+    ref: base,
+    label: base,
+  },
+  head: {
+    label: head,
+    ref: head,
+    repo: {
+      name: repo,
+      owner: {
+        login: owner,
+      },
+    },
   },
 };
 const validPull = {
@@ -69,7 +95,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullsUpdateResponseData,
+      (pull as unknown) as pullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -82,7 +108,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullsUpdateResponseData,
+      (pull as unknown) as pullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -97,7 +123,7 @@ describe('test `prNeedsUpdate`', () => {
     });
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullsUpdateResponseData,
+      (pull as unknown) as pullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -111,7 +137,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -130,7 +156,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);
@@ -187,7 +213,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -220,6 +246,49 @@ describe('test `prNeedsUpdate`', () => {
     expect(config.excludedLabels).toHaveBeenCalled();
   });
 
+  test('pull request has labels with no name', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.pullRequestLabels as jest.Mock).mockReturnValue(['one', 'two']);
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+
+    const scope = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, {});
+    const needsUpdate = await updater.prNeedsUpdate(
+      (invalidLabelPull as unknown) as pullRequestResponse['data'],
+    );
+
+    expect(needsUpdate).toEqual(false);
+    expect(scope.isDone()).toEqual(true);
+    expect(config.pullRequestFilter).toHaveBeenCalled();
+    expect(config.pullRequestLabels).toHaveBeenCalled();
+    expect(config.excludedLabels).toHaveBeenCalled();
+  });
+
+  test('pull request has labels with no name - excluded labels checked', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
+    (config.excludedLabels as jest.Mock).mockReturnValue(['one', 'two']);
+
+    const scope = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, {});
+    const needsUpdate = await updater.prNeedsUpdate(
+      (invalidLabelPull as unknown) as pullRequestResponse['data'],
+    );
+
+    expect(needsUpdate).toEqual(false);
+    expect(scope.isDone()).toEqual(true);
+    expect(config.excludedLabels).toHaveBeenCalled();
+  });
+
   test('pull request labels do not match', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('labelled');
     (config.pullRequestLabels as jest.Mock).mockReturnValue(['three', 'four']);
@@ -233,7 +302,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -286,7 +355,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);
@@ -314,7 +383,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -336,7 +405,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, {});
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullsUpdateResponseData,
+      (validPull as unknown) as pullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);

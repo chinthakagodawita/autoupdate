@@ -58,22 +58,24 @@ export class AutoUpdater {
   async handleWorkflowRun(): Promise<number> {
     const { workflow_run, repository } = this.eventData;
     const branch = workflow_run.head_branch;
+    const event = workflow_run.event;
 
+    if (workflow_run.event !== 'push') {
+      ghCore.warning(
+        `Workflow_run event triggered via ${event} workflow not yet supported.`,
+      );
+      return 0;
+    }
+
+    // this may not be possible given the check above, but leaving in for now
     if (branch.length === 0) {
-      ghCore.warning('Push event was not on a branch, skipping.');
+      ghCore.warning('Event was not on a branch, skipping.');
       return 0;
     }
 
     ghCore.info(
-      `Handling workflow-run event triggered by '${workflow_run.event}' on '${branch}'`,
+      `Handling workflow-run event triggered by '${event}' on '${branch}'`,
     );
-
-    if (workflow_run.pull_requests.length !== 0) {
-      ghCore.warning(
-        'Workflow_run event triggered via pull_request workflow not yet supported.',
-      );
-      return 0;
-    }
 
     const updated = await this.pulls(`refs/heads/${branch}`, repository);
 

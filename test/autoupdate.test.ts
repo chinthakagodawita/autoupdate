@@ -559,12 +559,7 @@ describe('test `handleWorkflowRun`', () => {
 
   test('workflow_run event by pull_request event not supported', async () => {
     const event = cloneEvent();
-    event.workflow_run.pull_requests = [
-      {
-        url: 'https://api.github.com/repos/github/hello-world/pulls/1',
-        id: 1,
-      },
-    ];
+    event.workflow_run.event = 'pull_request';
 
     const updater = new AutoUpdater(config, event);
 

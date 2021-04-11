@@ -5,8 +5,8 @@ import * as octokit from '@octokit/types';
 import { ConfigLoader } from './config-loader';
 import { Endpoints } from '@octokit/types';
 
-type pullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
-type mergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
+type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
+type MergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
 export class AutoUpdater {
   eventData: any;
@@ -47,7 +47,7 @@ export class AutoUpdater {
 
     let pullsPage: octokit.OctokitResponse<any>;
     for await (pullsPage of this.octokit.paginate.iterator(paginatorOpts)) {
-      let pull: pullRequestResponse['data'];
+      let pull: PullRequestResponse['data'];
       for (pull of pullsPage.data) {
         ghCore.startGroup(`PR-${pull.number}`);
         const isUpdated = await this.update(pull);
@@ -83,7 +83,7 @@ export class AutoUpdater {
     return isUpdated;
   }
 
-  async update(pull: pullRequestResponse['data']): Promise<boolean> {
+  async update(pull: PullRequestResponse['data']): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -106,7 +106,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: mergeParameters = {
+    const mergeOpts: MergeParameters = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -131,7 +131,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async prNeedsUpdate(pull: pullRequestResponse['data']): Promise<boolean> {
+  async prNeedsUpdate(pull: PullRequestResponse['data']): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -170,8 +170,8 @@ export class AutoUpdater {
     if (excludedLabels.length > 0) {
       for (const label of pull.labels) {
         if (label.name === undefined) {
-          ghCore.warning(`Label name is undefined, skipping update.`);
-          return false;
+          ghCore.warning(`Label name is undefined, continuing.`);
+          continue;
         }
         if (excludedLabels.includes(label.name)) {
           ghCore.info(
@@ -209,8 +209,8 @@ export class AutoUpdater {
 
       for (const label of pull.labels) {
         if (label.name === undefined) {
-          ghCore.warning(`Label name is undefined, skipping update.`);
-          return false;
+          ghCore.warning(`Label name is undefined, continuing.`);
+          continue;
         }
 
         if (labels.includes(label.name)) {
@@ -252,7 +252,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts: mergeParameters): Promise<boolean> {
+  async merge(mergeOpts: MergeParameters): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);

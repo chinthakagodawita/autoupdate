@@ -3,14 +3,10 @@ import { GitHub } from '@actions/github/lib/utils';
 import * as ghCore from '@actions/core';
 import * as octokit from '@octokit/types';
 import { ConfigLoader } from './config-loader';
+import { Endpoints } from '@octokit/types';
 
-interface MergeOpts {
-  owner: string;
-  repo: string;
-  base: string;
-  head: string;
-  commit_message?: string;
-}
+type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
+type MergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
 export class AutoUpdater {
   eventData: any;
@@ -51,7 +47,7 @@ export class AutoUpdater {
 
     let pullsPage: octokit.OctokitResponse<any>;
     for await (pullsPage of this.octokit.paginate.iterator(paginatorOpts)) {
-      let pull: octokit.PullsUpdateResponseData;
+      let pull: PullRequestResponse['data'];
       for (pull of pullsPage.data) {
         ghCore.startGroup(`PR-${pull.number}`);
         const isUpdated = await this.update(pull);
@@ -87,7 +83,7 @@ export class AutoUpdater {
     return isUpdated;
   }
 
-  async update(pull: octokit.PullsUpdateResponseData): Promise<boolean> {
+  async update(pull: PullRequestResponse['data']): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -110,7 +106,7 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: octokit.RequestParameters & MergeOpts = {
+    const mergeOpts: MergeParameters = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // We want to merge the base branch into this one.
@@ -135,7 +131,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async prNeedsUpdate(pull: octokit.PullsUpdateResponseData): Promise<boolean> {
+  async prNeedsUpdate(pull: PullRequestResponse['data']): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -173,6 +169,10 @@ export class AutoUpdater {
     const excludedLabels = this.config.excludedLabels();
     if (excludedLabels.length > 0) {
       for (const label of pull.labels) {
+        if (label.name === undefined) {
+          ghCore.warning(`Label name is undefined, continuing.`);
+          continue;
+        }
         if (excludedLabels.includes(label.name)) {
           ghCore.info(
             `Pull request has excluded label '${label.name}', skipping update.`,
@@ -208,6 +208,11 @@ export class AutoUpdater {
       }
 
       for (const label of pull.labels) {
+        if (label.name === undefined) {
+          ghCore.warning(`Label name is undefined, continuing.`);
+          continue;
+        }
+
         if (labels.includes(label.name)) {
           ghCore.info(
             `Pull request has label '${label.name}' and PR branch is behind base branch.`,
@@ -247,9 +252,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(
-    mergeOpts: octokit.RequestParameters & MergeOpts,
-  ): Promise<boolean> {
+  async merge(mergeOpts: MergeParameters): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);

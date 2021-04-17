@@ -29,9 +29,7 @@ export class AutoUpdater {
 
     ghCore.info(`Handling push event on ref '${ref}'`);
 
-    const updated = await this.pulls(ref, repository);
-
-    return updated;
+    return await this.pulls(ref, repository);
   }
 
   async handlePullRequest(): Promise<boolean> {
@@ -73,9 +71,7 @@ export class AutoUpdater {
       `Handling workflow-run event triggered by '${event}' on '${branch}'`,
     );
 
-    const updated = await this.pulls(`refs/heads/${branch}`, repository);
-
-    return updated;
+    return await this.pulls(`refs/heads/${branch}`, repository);
   }
 
   async pulls(ref: string, repository: PayloadRepository): Promise<number> {

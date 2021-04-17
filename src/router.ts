@@ -2,7 +2,6 @@ import { AutoUpdater } from '../src/autoupdater';
 import { ConfigLoader } from '../src/config-loader';
 
 export class Router {
-  eventData: any;
   updater: AutoUpdater;
 
   constructor(

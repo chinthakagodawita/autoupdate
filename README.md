@@ -29,6 +29,10 @@ This will trigger on all pushes and automatically update any pull requests, if c
 
 For more information on customising event triggers, see [Github's documentation](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows#push-event-push).
 
+The following events are supported:
+* push
+* pull_request
+* workflow_run
 
 ## Configuration
 The following configuration options are supported. To change any of these, simply specify it as an `env` value in your workflow file.
@@ -101,10 +105,10 @@ Here's a screenshot:
   * There is [an open issue in the Github community forum](https://github.community/t5/GitHub-Actions/Triggering-a-new-workflow-from-another-workflow/td-p/31676) tracking this
 
 ## Coming soon
-* Conflict handling
 * Rebase support
 * Label negation support
 * Token support in custom merge messages
+* `schedule` event support
 
 ## Also see
 * [automerge](https://github.com/pascalgn/automerge-action/) for automatic merging of PRs

@@ -4,10 +4,17 @@ if ('GITHUB_TOKEN' in process.env) {
   delete process.env.GITHUB_TOKEN;
 }
 
+import { createMock } from 'ts-auto-mock';
 import nock from 'nock';
 import config from '../src/config-loader';
 import { AutoUpdater } from '../src/autoupdater';
 import { Endpoints } from '@octokit/types';
+import {
+  PullRequestEvent,
+  PushEvent,
+  WebhookEvent,
+  WorkflowRunEvent,
+} from '@octokit/webhooks-definitions/schema';
 
 type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 
@@ -18,20 +25,45 @@ beforeEach(() => {
   jest.spyOn(config, 'githubToken').mockImplementation(() => 'test-token');
 });
 
+const emptyEvent = {} as WebhookEvent;
 const owner = 'chinthakagodawita';
 const repo = 'not-a-real-repo';
 const base = 'master';
 const head = 'develop';
 const branch = 'not-a-real-branch';
-const dummyEvent = {
+const dummyPushEvent = createMock<PushEvent>({
   ref: `refs/heads/${branch}`,
+  repository: {
+    owner: {
+      login: owner,
+    },
+    name: repo,
+  },
+});
+const dummyWorkflowRunPushEvent = createMock<WorkflowRunEvent>({
+  workflow_run: {
+    event: 'push',
+    head_branch: branch,
+  },
   repository: {
     owner: {
       name: owner,
     },
     name: repo,
   },
-};
+});
+const dummyWorkflowRunPullRequestEvent = createMock<WorkflowRunEvent>({
+  workflow_run: {
+    event: 'pull_request',
+    head_branch: branch,
+  },
+  repository: {
+    owner: {
+      name: owner,
+    },
+    name: repo,
+  },
+});
 const invalidLabelPull = {
   number: 1,
   merged: false,
@@ -93,7 +125,7 @@ describe('test `prNeedsUpdate`', () => {
       merged: true,
     };
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (pull as unknown) as PullRequestResponse['data'],
     );
@@ -106,7 +138,7 @@ describe('test `prNeedsUpdate`', () => {
       state: 'closed',
     };
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (pull as unknown) as PullRequestResponse['data'],
     );
@@ -121,7 +153,7 @@ describe('test `prNeedsUpdate`', () => {
         repo: null,
       },
     });
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, {} as WebhookEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (pull as unknown) as PullRequestResponse['data'],
     );
@@ -135,7 +167,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 0,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -154,7 +186,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -176,7 +208,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const pull = clonePull();
     pull.labels = [
       {
@@ -211,7 +243,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -234,7 +266,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const pull = clonePull();
     pull.labels = [];
     const needsUpdate = await updater.prNeedsUpdate(pull);
@@ -257,7 +289,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (invalidLabelPull as unknown) as PullRequestResponse['data'],
     );
@@ -280,7 +312,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (invalidLabelPull as unknown) as PullRequestResponse['data'],
     );
@@ -303,7 +335,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -326,7 +358,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const pull = clonePull();
     pull.labels = [
       {
@@ -356,7 +388,7 @@ describe('test `prNeedsUpdate`', () => {
         protected: true,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -384,7 +416,7 @@ describe('test `prNeedsUpdate`', () => {
         protected: false,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -406,7 +438,7 @@ describe('test `prNeedsUpdate`', () => {
         behind_by: 1,
       });
 
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
       (validPull as unknown) as PullRequestResponse['data'],
     );
@@ -419,7 +451,7 @@ describe('test `prNeedsUpdate`', () => {
 });
 
 describe('test `handlePush`', () => {
-  const cloneEvent = () => JSON.parse(JSON.stringify(dummyEvent));
+  const cloneEvent = () => JSON.parse(JSON.stringify(dummyPushEvent));
 
   test('push event on a non-branch', async () => {
     const event = cloneEvent();
@@ -436,7 +468,7 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch without any PRs', async () => {
-    const updater = new AutoUpdater(config, dummyEvent);
+    const updater = new AutoUpdater(config, dummyPushEvent);
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
 
@@ -454,7 +486,7 @@ describe('test `handlePush`', () => {
   });
 
   test('push event on a branch with PRs', async () => {
-    const updater = new AutoUpdater(config, dummyEvent);
+    const updater = new AutoUpdater(config, dummyPushEvent);
 
     const pullsMock = [];
     const expectedPulls = 5;
@@ -481,11 +513,138 @@ describe('test `handlePush`', () => {
   });
 });
 
+describe('test `handleWorkflowRun`', () => {
+  const cloneEvent = () =>
+    JSON.parse(JSON.stringify(dummyWorkflowRunPushEvent));
+
+  test('workflow_run event by push event on a non-branch', async () => {
+    const event = cloneEvent();
+    event.workflow_run.head_branch = '';
+
+    const updater = new AutoUpdater(config, event);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test('workflow_run event by push event on a branch without any PRs', async () => {
+    const updater = new AutoUpdater(config, dummyWorkflowRunPushEvent);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, []);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event by push event on a branch with PRs', async () => {
+    const updater = new AutoUpdater(config, dummyWorkflowRunPushEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 5;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(expectedPulls);
+    expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event by pull_request event with an update triggered', async () => {
+    const updater = new AutoUpdater(
+      config,
+      createMock<WorkflowRunEvent>(dummyWorkflowRunPullRequestEvent),
+    );
+
+    const pullsMock = [];
+    const expectedPulls = 2;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(expectedPulls);
+    expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event by pull_request event without an update', async () => {
+    const updater = new AutoUpdater(
+      config,
+      createMock<WorkflowRunEvent>(dummyWorkflowRunPullRequestEvent),
+    );
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(false);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, []);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('workflow_run event with an unsupported event type', async () => {
+    const event = cloneEvent();
+    event.workflow_run.event = 'pull_request_review';
+
+    const updater = new AutoUpdater(config, event);
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleWorkflowRun();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+});
+
 describe('test `handlePullRequest`', () => {
   test('pull request event with an update triggered', async () => {
-    const updater = new AutoUpdater(config, {
-      action: 'dummy-action',
-    });
+    const updater = new AutoUpdater(config, createMock<PullRequestEvent>());
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
     const updated = await updater.handlePullRequest();
@@ -495,9 +654,7 @@ describe('test `handlePullRequest`', () => {
   });
 
   test('pull request event without an update', async () => {
-    const updater = new AutoUpdater(config, {
-      action: 'dummy-action',
-    });
+    const updater = new AutoUpdater(config, createMock<PullRequestEvent>());
 
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(false);
     const updated = await updater.handlePullRequest();
@@ -509,7 +666,7 @@ describe('test `handlePullRequest`', () => {
 
 describe('test `update`', () => {
   test('when a pull request does not need an update', async () => {
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(false);
@@ -520,7 +677,7 @@ describe('test `update`', () => {
 
   test('dry run mode', async () => {
     (config.dryRun as jest.Mock).mockReturnValue(true);
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
@@ -535,7 +692,7 @@ describe('test `update`', () => {
   test('custom merge message', async () => {
     const mergeMsg = 'dummy-merge-msg';
     (config.mergeMsg as jest.Mock).mockReturnValue(mergeMsg);
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
 
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
@@ -558,7 +715,7 @@ describe('test `update`', () => {
 
   test('merge with no message', async () => {
     (config.mergeMsg as jest.Mock).mockReturnValue('');
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
 
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
@@ -611,7 +768,7 @@ describe('test `merge`', () => {
       (config.retryCount as jest.Mock).mockReturnValue(0);
       (config.retrySleep as jest.Mock).mockReturnValue(0);
       (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
-      const updater = new AutoUpdater(config, {});
+      const updater = new AutoUpdater(config, emptyEvent);
 
       const scope = nock('https://api.github.com:443')
         .post(`/repos/${owner}/${repo}/merges`, {
@@ -635,7 +792,7 @@ describe('test `merge`', () => {
     const retryCount = 3;
     (config.retryCount as jest.Mock).mockReturnValue(retryCount);
     (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
 
     const scopes = [];
     for (let i = 0; i <= retryCount; i++) {
@@ -659,7 +816,7 @@ describe('test `merge`', () => {
   test('ignore merge conflicts', async () => {
     (config.retryCount as jest.Mock).mockReturnValue(0);
     (config.mergeConflictAction as jest.Mock).mockReturnValue('ignore');
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
 
     const scope = nock('https://api.github.com:443')
       .post(`/repos/${owner}/${repo}/merges`, {
@@ -679,7 +836,7 @@ describe('test `merge`', () => {
   test('not ignoring merge conflicts', async () => {
     (config.retryCount as jest.Mock).mockReturnValue(0);
     (config.mergeConflictAction as jest.Mock).mockReturnValue(null);
-    const updater = new AutoUpdater(config, {});
+    const updater = new AutoUpdater(config, emptyEvent);
 
     const scope = nock('https://api.github.com:443')
       .post(`/repos/${owner}/${repo}/merges`, {
@@ -700,7 +857,7 @@ describe('test `merge`', () => {
 
   test('continue if merging throws an error', async () => {
     (config.mergeMsg as jest.Mock).mockReturnValue(null);
-    const updater = new AutoUpdater(config, dummyEvent);
+    const updater = new AutoUpdater(config, dummyPushEvent);
 
     const pullsMock = [];
     const expectedPulls = 5;

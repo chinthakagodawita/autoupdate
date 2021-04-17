@@ -1,15 +1,11 @@
+import { WebhookEvent } from '@octokit/webhooks-definitions/schema';
 import { AutoUpdater } from '../src/autoupdater';
 import { ConfigLoader } from '../src/config-loader';
 
 export class Router {
-  eventData: any;
   updater: AutoUpdater;
 
-  constructor(
-    config: ConfigLoader,
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    eventData: any,
-  ) {
+  constructor(config: ConfigLoader, eventData: WebhookEvent) {
     this.updater = new AutoUpdater(config, eventData);
   }
 
@@ -24,9 +20,11 @@ export class Router {
       await this.updater.handlePullRequest();
     } else if (eventName === 'push') {
       await this.updater.handlePush();
+    } else if (eventName === 'workflow_run') {
+      await this.updater.handleWorkflowRun();
     } else {
       throw new Error(
-        `Unknown event type '${eventName}', only 'push' and 'pull_request' are supported.`,
+        `Unknown event type '${eventName}', only 'push', 'pull_request' and 'workflow_run' are supported.`,
       );
     }
   }

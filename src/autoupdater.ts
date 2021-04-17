@@ -2,32 +2,87 @@ import * as github from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import * as ghCore from '@actions/core';
 import * as octokit from '@octokit/types';
+import {
+  PullRequestEvent,
+  PushEvent,
+  Repository,
+  WebhookEvent,
+  WorkflowRunEvent,
+} from '@octokit/webhooks-definitions/schema';
 import { ConfigLoader } from './config-loader';
 import { Endpoints } from '@octokit/types';
 
+type PullRequest =
+  | PullRequestResponse['data']
+  | PullRequestEvent['pull_request'];
 type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 type MergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
 export class AutoUpdater {
-  eventData: any;
+  // See https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
+  eventData: WebhookEvent;
   config: ConfigLoader;
   octokit: InstanceType<typeof GitHub>;
 
-  constructor(
-    config: ConfigLoader,
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    eventData: any,
-  ) {
+  constructor(config: ConfigLoader, eventData: WebhookEvent) {
     this.eventData = eventData;
     this.config = config;
     this.octokit = github.getOctokit(this.config.githubToken());
   }
 
   async handlePush(): Promise<number> {
-    const { ref, repository } = this.eventData;
+    const { ref, repository } = this.eventData as PushEvent;
 
     ghCore.info(`Handling push event on ref '${ref}'`);
 
+    return await this.pulls(ref, repository);
+  }
+
+  async handlePullRequest(): Promise<boolean> {
+    const { action, pull_request } = this.eventData as PullRequestEvent;
+
+    ghCore.info(`Handling pull_request event triggered by action '${action}'`);
+
+    const isUpdated = await this.update(pull_request);
+    if (isUpdated) {
+      ghCore.info(
+        'Auto update complete, pull request branch was updated with changes from the base branch.',
+      );
+    } else {
+      ghCore.info('Auto update complete, no changes were made.');
+    }
+
+    return isUpdated;
+  }
+
+  async handleWorkflowRun(): Promise<number> {
+    const { workflow_run: workflowRun, repository } = this
+      .eventData as WorkflowRunEvent;
+    const { head_branch: branch, event } = workflowRun;
+
+    if (!['push', 'pull_request'].includes(event)) {
+      ghCore.error(
+        `workflow_run events triggered via ${event} workflows are not supported.`,
+      );
+      return 0;
+    }
+
+    // This may not be possible given the check above, but here for safety.
+    if (!branch) {
+      ghCore.warning('Event was not on a branch, skipping.');
+      return 0;
+    }
+
+    ghCore.info(
+      `Handling workflow_run event triggered by '${event}' on '${branch}'`,
+    );
+
+    // The `pull_request` event is handled the same way as `push` as we may
+    // get multiple PRs.
+    return await this.pulls(`refs/heads/${branch}`, repository);
+  }
+
+  async pulls(ref: string, repository: Repository): Promise<number> {
     if (!ref.startsWith('refs/heads/')) {
       ghCore.warning('Push event was not on a branch, skipping.');
       return 0;
@@ -37,7 +92,7 @@ export class AutoUpdater {
 
     let updated = 0;
     const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
-      owner: repository.owner.name,
+      owner: repository.owner.name || repository.owner.login,
       repo: repository.name,
       base: baseBranch,
       state: 'open',
@@ -66,24 +121,7 @@ export class AutoUpdater {
     return updated;
   }
 
-  async handlePullRequest(): Promise<boolean> {
-    const { action } = this.eventData;
-
-    ghCore.info(`Handling pull_request event triggered by action '${action}'`);
-
-    const isUpdated = await this.update(this.eventData.pull_request);
-    if (isUpdated) {
-      ghCore.info(
-        'Auto update complete, pull request branch was updated with changes from the base branch.',
-      );
-    } else {
-      ghCore.info('Auto update complete, no changes were made.');
-    }
-
-    return isUpdated;
-  }
-
-  async update(pull: PullRequestResponse['data']): Promise<boolean> {
+  async update(pull: PullRequest): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -131,7 +169,7 @@ export class AutoUpdater {
     return true;
   }
 
-  async prNeedsUpdate(pull: PullRequestResponse['data']): Promise<boolean> {
+  async prNeedsUpdate(pull: PullRequest): Promise<boolean> {
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -170,7 +208,7 @@ export class AutoUpdater {
     if (excludedLabels.length > 0) {
       for (const label of pull.labels) {
         if (label.name === undefined) {
-          ghCore.warning(`Label name is undefined, continuing.`);
+          ghCore.debug(`Label name is undefined, continuing.`);
           continue;
         }
         if (excludedLabels.includes(label.name)) {
@@ -209,7 +247,7 @@ export class AutoUpdater {
 
       for (const label of pull.labels) {
         if (label.name === undefined) {
-          ghCore.warning(`Label name is undefined, continuing.`);
+          ghCore.debug(`Label name is undefined, continuing.`);
           continue;
         }
 

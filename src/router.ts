@@ -1,14 +1,11 @@
+import { WebhookEvent } from '@octokit/webhooks-definitions/schema';
 import { AutoUpdater } from '../src/autoupdater';
 import { ConfigLoader } from '../src/config-loader';
 
 export class Router {
   updater: AutoUpdater;
 
-  constructor(
-    config: ConfigLoader,
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    eventData: any,
-  ) {
+  constructor(config: ConfigLoader, eventData: WebhookEvent) {
     this.updater = new AutoUpdater(config, eventData);
   }
 

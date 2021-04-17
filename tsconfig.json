@@ -8,7 +8,13 @@
     "baseUrl": ".",
     "paths": {
       "*": ["src/*", "bin/*"]
-    }
+    },
+    "plugins": [
+      {
+        "transform": "ts-auto-mock/transformer",
+        "cacheBetweenTests": false
+      },
+    ]
   },
   "include": ["src/**/*"],
   "exclude": ["**/*.test.ts"]

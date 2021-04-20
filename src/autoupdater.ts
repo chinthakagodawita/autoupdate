@@ -61,27 +61,18 @@ export class AutoUpdater {
   }
 
   async handleSchedule(): Promise<number> {
-    const ref = this.config.getValue('GITHUB_REF');
-    const ownerAndRepo = this.config.getValue('GITHUB_REPOSITORY');
-
-    if (ownerAndRepo === undefined) {
-      ghCore.error('GITHUB_REPOSITORY value is undefined.');
-      return 0;
-    }
-
-    if (ref === undefined) {
-      ghCore.error('GITHUB_REF value is undefined.');
-      return 0;
-    }
+    const ref = this.config.githubRef();
+    const ownerAndRepo = this.config.githubRepository();
 
     const splitRepoName = ownerAndRepo.split('/');
-    const repoOwner = splitRepoName[0];
-    const repoName = splitRepoName[1];
 
-    if (repoOwner === undefined || repoName === undefined) {
+    if (splitRepoName.length !== 2) {
       ghCore.error(`Cannot parse GITHUB_REPOSITORY value ${ownerAndRepo}`);
       return 0;
     }
+
+    const repoOwner = splitRepoName[0];
+    const repoName = splitRepoName[1];
 
     ghCore.info(`Handling schedule event on '${ref}'`);
 

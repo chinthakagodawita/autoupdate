@@ -71,6 +71,20 @@ const tests = [
     default: 'fail',
     type: 'string',
   },
+  {
+    name: 'githubRef',
+    envVar: 'GITHUB_REF',
+    required: true,
+    default: '',
+    type: 'string',
+  },
+  {
+    name: 'githubRepository',
+    envVar: 'GITHUB_REPOSITORY',
+    required: true,
+    default: '',
+    type: 'string',
+  },
 ];
 
 for (const testDef of tests) {

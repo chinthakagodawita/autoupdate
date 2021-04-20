@@ -519,15 +519,13 @@ describe('test `handlePush`', () => {
 
 describe('test `handleSchedule`', () => {
   test('schedule event on a branch with PRs', async () => {
-    jest.spyOn(config, 'getValue').mockImplementation((key) => {
-      if (key === 'GITHUB_REPOSITORY') {
-        return `${owner}/${repo}`;
-      }
+    jest
+      .spyOn(config, 'githubRef')
+      .mockImplementation(() => `refs/heads/${base}`);
 
-      if (key === 'GITHUB_REF') {
-        return `refs/heads/${base}`;
-      }
-    });
+    jest
+      .spyOn(config, 'githubRepository')
+      .mockImplementation(() => `${owner}/${repo}`);
 
     const event = dummyScheduleEvent;
     const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
@@ -557,56 +555,31 @@ describe('test `handleSchedule`', () => {
   });
 
   test('schedule event with undefined GITHIB_REPOSITORY env var', async () => {
-    jest.spyOn(config, 'getValue').mockImplementation((key) => {
-      if (key === 'GITHUB_REPOSITORY') {
-        return undefined;
-      }
-
-      if (key === 'GITHUB_REF') {
-        return `refs/heads/${base}`;
-      }
-    });
+    jest
+      .spyOn(config, 'githubRef')
+      .mockImplementation(() => `refs/heads/${base}`);
 
     const event = dummyScheduleEvent;
     const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
-    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
 
-    const updated = await updater.handleSchedule();
-
-    expect(updated).toEqual(0);
-    expect(updateSpy).toHaveBeenCalledTimes(0);
+    await expect(updater.handleSchedule()).rejects.toThrowError();
   });
 
   test('schedule event with undefined GITHIB_REF env var', async () => {
-    jest.spyOn(config, 'getValue').mockImplementation((key) => {
-      if (key === 'GITHUB_REPOSITORY') {
-        return `${owner}/${repo}`;
-      }
-
-      if (key === 'GITHUB_REF') {
-        return undefined;
-      }
-    });
+    jest
+      .spyOn(config, 'githubRepository')
+      .mockImplementation(() => `${owner}/${repo}`);
 
     const event = dummyScheduleEvent;
     const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
-    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
-
-    const updated = await updater.handleSchedule();
-
-    expect(updated).toEqual(0);
-    expect(updateSpy).toHaveBeenCalledTimes(0);
+    await expect(updater.handleSchedule()).rejects.toThrowError();
   });
 
   test('schedule event with invalid GITHUB_REPOSITORY env var', async () => {
-    jest.spyOn(config, 'getValue').mockImplementation((key) => {
-      if (key === 'GITHUB_REPOSITORY') {
-        return '';
-      }
-      if (key === 'GITHUB_REF') {
-        return `refs/heads/${base}`;
-      }
-    });
+    jest.spyOn(config, 'githubRepository').mockImplementation(() => '');
+    jest
+      .spyOn(config, 'githubRef')
+      .mockImplementation(() => `refs/heads/${base}`);
 
     const event = dummyScheduleEvent;
     const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);

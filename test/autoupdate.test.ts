@@ -31,6 +31,7 @@ const repo = 'not-a-real-repo';
 const base = 'master';
 const head = 'develop';
 const branch = 'not-a-real-branch';
+
 const dummyPushEvent = createMock<PushEvent>({
   ref: `refs/heads/${branch}`,
   repository: {
@@ -64,6 +65,9 @@ const dummyWorkflowRunPullRequestEvent = createMock<WorkflowRunEvent>({
     name: repo,
   },
 });
+const dummyScheduleEvent = {
+  schedule: '*/5 * * * *',
+};
 const invalidLabelPull = {
   number: 1,
   merged: false,
@@ -510,6 +514,108 @@ describe('test `handlePush`', () => {
     expect(updated).toEqual(expectedPulls);
     expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
     expect(scope.isDone()).toEqual(true);
+  });
+});
+
+describe('test `handleSchedule`', () => {
+  test('schedule event on a branch with PRs', async () => {
+    jest.spyOn(config, 'getValue').mockImplementation((key) => {
+      if (key === 'GITHUB_REPOSITORY') {
+        return `${owner}/${repo}`;
+      }
+
+      if (key === 'GITHUB_REF') {
+        return `refs/heads/${base}`;
+      }
+    });
+
+    const event = dummyScheduleEvent;
+    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 5;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${base}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handleSchedule();
+
+    expect(updated).toEqual(expectedPulls);
+    expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('schedule event with undefined GITHIB_REPOSITORY env var', async () => {
+    jest.spyOn(config, 'getValue').mockImplementation((key) => {
+      if (key === 'GITHUB_REPOSITORY') {
+        return undefined;
+      }
+
+      if (key === 'GITHUB_REF') {
+        return `refs/heads/${base}`;
+      }
+    });
+
+    const event = dummyScheduleEvent;
+    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleSchedule();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test('schedule event with undefined GITHIB_REF env var', async () => {
+    jest.spyOn(config, 'getValue').mockImplementation((key) => {
+      if (key === 'GITHUB_REPOSITORY') {
+        return `${owner}/${repo}`;
+      }
+
+      if (key === 'GITHUB_REF') {
+        return undefined;
+      }
+    });
+
+    const event = dummyScheduleEvent;
+    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleSchedule();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test('schedule event with invalid GITHUB_REPOSITORY env var', async () => {
+    jest.spyOn(config, 'getValue').mockImplementation((key) => {
+      if (key === 'GITHUB_REPOSITORY') {
+        return '';
+      }
+      if (key === 'GITHUB_REF') {
+        return `refs/heads/${base}`;
+      }
+    });
+
+    const event = dummyScheduleEvent;
+    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handleSchedule();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
   });
 });
 

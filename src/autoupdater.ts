@@ -64,8 +64,6 @@ export class AutoUpdater {
     const ref = this.config.getValue('GITHUB_REF');
     const ownerAndRepo = this.config.getValue('GITHUB_REPOSITORY');
 
-    ghCore.info('Owner and repo: ' + ownerAndRepo);
-
     if (ownerAndRepo === undefined) {
       ghCore.error('GITHUB_REPOSITORY value is undefined.');
       return 0;
@@ -85,7 +83,7 @@ export class AutoUpdater {
       return 0;
     }
 
-    ghCore.info(`Handling schedule event triggered by 'schedule' on '${ref}'`);
+    ghCore.info(`Handling schedule event on '${ref}'`);
 
     return await this.pulls(ref, repoName, repoOwner);
   }

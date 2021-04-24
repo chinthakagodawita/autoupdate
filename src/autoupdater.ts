@@ -124,9 +124,20 @@ export class AutoUpdater {
 
     const baseBranch = ref.replace('refs/heads/', '');
 
+    const owner = repoOwnerName ?? repoOwnerLogin;
+
+    if (!owner) {
+      ghCore.error('Invalid repository owner provided');
+      return 0;
+    }
+    if (!repoName) {
+      ghCore.error('Invalid repository name provided');
+      return 0;
+    }
+
     let updated = 0;
     const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
-      owner: repoOwnerName || repoOwnerLogin,
+      owner: owner,
       repo: repoName,
       base: baseBranch,
       state: 'open',

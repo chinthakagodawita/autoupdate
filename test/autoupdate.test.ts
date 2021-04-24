@@ -515,6 +515,44 @@ describe('test `handlePush`', () => {
     expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
     expect(scope.isDone()).toEqual(true);
   });
+
+  test('push event with invalid owner', async () => {
+    const invalidPushEvent = createMock<PushEvent>({
+      ref: `refs/heads/${branch}`,
+      repository: {
+        owner: {
+          login: '',
+        },
+        name: repo,
+      },
+    });
+    const updater = new AutoUpdater(config, invalidPushEvent);
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handlePush();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test('push event with invalid repo name', async () => {
+    const invalidPushEvent = createMock<PushEvent>({
+      ref: `refs/heads/${branch}`,
+      repository: {
+        owner: {
+          login: owner,
+        },
+        name: '',
+      },
+    });
+    const updater = new AutoUpdater(config, invalidPushEvent);
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const updated = await updater.handlePush();
+
+    expect(updated).toEqual(0);
+    expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
 });
 
 describe('test `handleSchedule`', () => {
@@ -554,7 +592,7 @@ describe('test `handleSchedule`', () => {
     expect(scope.isDone()).toEqual(true);
   });
 
-  test('schedule event with undefined GITHIB_REPOSITORY env var', async () => {
+  test('schedule event with undefined GITHUB_REPOSITORY env var', async () => {
     jest
       .spyOn(config, 'githubRef')
       .mockImplementation(() => `refs/heads/${base}`);
@@ -565,7 +603,7 @@ describe('test `handleSchedule`', () => {
     await expect(updater.handleSchedule()).rejects.toThrowError();
   });
 
-  test('schedule event with undefined GITHIB_REF env var', async () => {
+  test('schedule event with undefined GITHUB_REF env var', async () => {
     jest
       .spyOn(config, 'githubRepository')
       .mockImplementation(() => `${owner}/${repo}`);

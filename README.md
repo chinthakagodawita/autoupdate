@@ -37,6 +37,7 @@ The following events are supported:
 - push
 - pull_request
 - workflow_run
+- schedule
 
 ## Configuration
 
@@ -85,15 +86,15 @@ jobs:
     steps:
       - uses: docker://chinthakagodawita/autoupdate-action:v1
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-          DRY_RUN: 'false'
-          PR_FILTER: 'labelled'
-          PR_LABELS: 'autoupdate,keep up-to-date,integration'
-          EXCLUDED_LABELS: 'dependencies,wontfix'
-          MERGE_MSG: 'Branch was auto-updated.'
-          RETRY_COUNT: '5'
-          RETRY_SLEEP: '300'
-          MERGE_CONFLICT_ACTION: 'fail'
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          DRY_RUN: "false"
+          PR_FILTER: "labelled"
+          PR_LABELS: "autoupdate,keep up-to-date,integration"
+          EXCLUDED_LABELS: "dependencies,wontfix"
+          MERGE_MSG: "Branch was auto-updated."
+          RETRY_COUNT: "5"
+          RETRY_SLEEP: "300"
+          MERGE_CONFLICT_ACTION: "fail"
 ```
 
 ## Examples
@@ -114,7 +115,6 @@ Here's a screenshot:
 ## Coming soon
 
 - Rebase support
-- Label negation support
 - Token support in custom merge messages
 
 ## Also see

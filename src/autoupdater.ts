@@ -5,7 +5,6 @@ import * as octokit from '@octokit/types';
 import {
   PullRequestEvent,
   PushEvent,
-  Repository,
   WebhookEvent,
   WorkflowRunEvent,
 } from '@octokit/webhooks-definitions/schema';
@@ -15,6 +14,7 @@ import { Endpoints } from '@octokit/types';
 type PullRequest =
   | PullRequestResponse['data']
   | PullRequestEvent['pull_request'];
+
 type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 type MergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
@@ -35,7 +35,12 @@ export class AutoUpdater {
 
     ghCore.info(`Handling push event on ref '${ref}'`);
 
-    return await this.pulls(ref, repository);
+    return await this.pulls(
+      ref,
+      repository.name,
+      repository.owner.login,
+      repository.owner.name,
+    );
   }
 
   async handlePullRequest(): Promise<boolean> {
@@ -53,6 +58,25 @@ export class AutoUpdater {
     }
 
     return isUpdated;
+  }
+
+  async handleSchedule(): Promise<number> {
+    const ref = this.config.githubRef();
+    const ownerAndRepo = this.config.githubRepository();
+
+    const splitRepoName = ownerAndRepo.split('/');
+
+    if (splitRepoName.length !== 2) {
+      ghCore.error(`Cannot parse GITHUB_REPOSITORY value ${ownerAndRepo}`);
+      return 0;
+    }
+
+    const repoOwner = splitRepoName[0];
+    const repoName = splitRepoName[1];
+
+    ghCore.info(`Handling schedule event on '${ref}'`);
+
+    return await this.pulls(ref, repoName, repoOwner);
   }
 
   async handleWorkflowRun(): Promise<number> {
@@ -79,10 +103,20 @@ export class AutoUpdater {
 
     // The `pull_request` event is handled the same way as `push` as we may
     // get multiple PRs.
-    return await this.pulls(`refs/heads/${branch}`, repository);
+    return await this.pulls(
+      `refs/heads/${branch}`,
+      repository.name,
+      repository.owner.login,
+      repository.owner.name,
+    );
   }
 
-  async pulls(ref: string, repository: Repository): Promise<number> {
+  async pulls(
+    ref: string,
+    repoName: string,
+    repoOwnerLogin: string,
+    repoOwnerName?: string,
+  ): Promise<number> {
     if (!ref.startsWith('refs/heads/')) {
       ghCore.warning('Push event was not on a branch, skipping.');
       return 0;
@@ -90,10 +124,21 @@ export class AutoUpdater {
 
     const baseBranch = ref.replace('refs/heads/', '');
 
+    const owner = repoOwnerName ?? repoOwnerLogin;
+
+    if (!owner) {
+      ghCore.error('Invalid repository owner provided');
+      return 0;
+    }
+    if (!repoName) {
+      ghCore.error('Invalid repository name provided');
+      return 0;
+    }
+
     let updated = 0;
     const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
-      owner: repository.owner.name || repository.owner.login,
-      repo: repository.name,
+      owner: owner,
+      repo: repoName,
       base: baseBranch,
       state: 'open',
       sort: 'updated',

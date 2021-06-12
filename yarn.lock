@@ -4595,10 +4595,10 @@ triple-beam@^1.2.0, triple-beam@^1.3.0:
   resolved "https://registry.yarnpkg.com/triple-beam/-/triple-beam-1.3.0.tgz#a595214c7298db8339eeeee083e4d10bd8cb8dd9"
   integrity sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==
 
-ts-auto-mock@^3.1.3:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/ts-auto-mock/-/ts-auto-mock-3.1.3.tgz#c87783d46b8482d7fd2a122bae067330abcb5098"
-  integrity sha512-ua34j2QKVhWdobdbYFylC9b2hEFyTl4b8Hqp3HhIDrjkwSrLa8scVEB3/p5rxEubpJdgmSp6wRaLk+GOh8zEYQ==
+ts-auto-mock@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/ts-auto-mock/-/ts-auto-mock-3.2.2.tgz#c426302b65909878b85f5809709592af34b81750"
+  integrity sha512-VXtrHPo9Q60Dy8YuqoZV/AbAFhhS2H0J833UBk7mcFOKFeyP8VRP7axgES0TwBbLuGwzEzY126aYObAG+ySGXg==
   dependencies:
     lodash-es "^4.17.21"
     micromatch "^4.0.4"

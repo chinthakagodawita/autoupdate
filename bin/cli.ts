@@ -25,9 +25,7 @@ async function main() {
   await router.route(eventName);
 }
 
-if (require.main === module) {
-  main().catch((e) => {
-    process.exitCode = 1;
-    ghCore.setFailed(e.message);
-  });
-}
+main().catch((e) => {
+  process.exitCode = 1;
+  ghCore.setFailed(e.message);
+});

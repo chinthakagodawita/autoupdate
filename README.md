@@ -61,6 +61,12 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 
 - `PR_LABELS`: Controls which labels _autoupdate_ will look for when monitoring PRs. Only used if `PR_FILTER="labelled"`. This can be either a single label or a comma-separated list of labels.
 
+- `PR_READY_STATE`: Controls how _autoupdate_ monitors pull requests based on their current [draft / ready for review](https://help.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-stage-of-a-pull-request) state. Possible values are:
+
+  - `"all"`: (default): No filter, _autoupdate_ will monitor and update pull requests regardless of ready state.
+  - `"ready_for_review"`: Only monitor PRs that are not currently in the draft state.
+  - `"draft"`: Only monitor PRs that are currently in the draft state.
+
 - `EXCLUDED_LABELS`: Controls which labels _autoupdate_ will ignore when evaluating otherwise-included PRs. This option works with all `PR_FILTER` options and can be either a single label or a comma-separated list of labels.
 
 - `MERGE_MSG`: A custom message to use when creating the merge commit from the destination branch to your pull request's branch.

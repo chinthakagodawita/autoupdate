@@ -331,6 +331,21 @@ export class AutoUpdater {
       return false;
     }
 
+    const readyStateFilter = this.config.pullRequestReadyState();
+    if (readyStateFilter !== 'all') {
+      ghCore.info('Checking PR ready state');
+
+      if (readyStateFilter === 'draft' && !pull.draft) {
+        ghCore.info('Pull request is not draft, skipping update.');
+        return false;
+      }
+
+      if (readyStateFilter === 'ready_for_review' && pull.draft) {
+        ghCore.info('Pull request is draft, skipping update.');
+        return false;
+      }
+    }
+
     ghCore.info('All checks pass and PR branch is behind base branch.');
     return true;
   }

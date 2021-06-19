@@ -454,99 +454,75 @@ describe('test `prNeedsUpdate`', () => {
     expect(config.excludedLabels).toHaveBeenCalled();
   });
 
-  test('pull request ready state is not filtered', async () => {
-    (config.pullRequestReadyState as jest.Mock).mockReturnValue('all');
-    (config.excludedLabels as jest.Mock).mockReturnValue([]);
-
-    const readyScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
-
-    const draftScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
-
-    const updater = new AutoUpdater(config, emptyEvent);
+  describe('pull request ready state filtering', () => {
     const readyPull = clonePull();
-    const draftPull = clonePull();
-    draftPull.draft = true;
+    const draftPull = Object.assign(clonePull(), { draft: true });
 
-    const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
-    const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+    const nockCompareRequest = () =>
+      nock('https://api.github.com:443')
+        .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+        .reply(200, {
+          behind_by: 1,
+        });
 
-    expect(readyPullNeedsUpdate).toEqual(true);
-    expect(draftPullNeedsUpdate).toEqual(true);
-    expect(config.pullRequestReadyState).toHaveBeenCalled();
-    expect(readyScope.isDone()).toEqual(true);
-    expect(draftScope.isDone()).toEqual(true);
-  });
+    beforeEach(() => {
+      (config.excludedLabels as jest.Mock).mockReturnValue([]);
+    });
 
-  test('pull request is filtered to drafts only', async () => {
-    (config.pullRequestReadyState as jest.Mock).mockReturnValue('draft');
-    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+    test('pull request ready state is not filtered', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue('all');
 
-    const readyScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
 
-    const draftScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
+      const updater = new AutoUpdater(config, emptyEvent);
 
-    const updater = new AutoUpdater(config, emptyEvent);
-    const readyPull = clonePull();
-    const draftPull = clonePull();
-    draftPull.draft = true;
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
 
-    const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
-    const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+      expect(readyPullNeedsUpdate).toEqual(true);
+      expect(draftPullNeedsUpdate).toEqual(true);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
 
-    expect(readyPullNeedsUpdate).toEqual(false);
-    expect(draftPullNeedsUpdate).toEqual(true);
-    expect(config.pullRequestReadyState).toHaveBeenCalled();
-    expect(readyScope.isDone()).toEqual(true);
-    expect(draftScope.isDone()).toEqual(true);
-  });
+    test('pull request is filtered to drafts only', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue('draft');
 
-  test('pull request ready state is filtered to ready PRs only', async () => {
-    (config.pullRequestReadyState as jest.Mock).mockReturnValue(
-      'ready_for_review',
-    );
-    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
 
-    const readyScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
+      const updater = new AutoUpdater(config, emptyEvent);
 
-    const draftScope = nock('https://api.github.com:443')
-      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
-      .reply(200, {
-        behind_by: 1,
-      });
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
 
-    const updater = new AutoUpdater(config, emptyEvent);
-    const readyPull = clonePull();
-    const draftPull = clonePull();
-    draftPull.draft = true;
+      expect(readyPullNeedsUpdate).toEqual(false);
+      expect(draftPullNeedsUpdate).toEqual(true);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
 
-    const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
-    const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+    test('pull request ready state is filtered to ready PRs only', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue(
+        'ready_for_review',
+      );
 
-    expect(readyPullNeedsUpdate).toEqual(true);
-    expect(draftPullNeedsUpdate).toEqual(false);
-    expect(config.pullRequestReadyState).toHaveBeenCalled();
-    expect(readyScope.isDone()).toEqual(true);
-    expect(draftScope.isDone()).toEqual(true);
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
+
+      const updater = new AutoUpdater(config, emptyEvent);
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+
+      expect(readyPullNeedsUpdate).toEqual(true);
+      expect(draftPullNeedsUpdate).toEqual(false);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
   });
 });
 

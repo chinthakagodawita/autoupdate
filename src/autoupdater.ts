@@ -270,12 +270,16 @@ export class AutoUpdater {
       ghCore.info('Checking PR ready state');
 
       if (readyStateFilter === 'draft' && !pull.draft) {
-        ghCore.info('PR_READY_STATE=draft and pull request is not draft, skipping update.');
+        ghCore.info(
+          'PR_READY_STATE=draft and pull request is not draft, skipping update.',
+        );
         return false;
       }
 
       if (readyStateFilter === 'ready_for_review' && pull.draft) {
-        ghCore.info('PR_READY_STATE=ready_for_review and pull request is draft, skipping update.');
+        ghCore.info(
+          'PR_READY_STATE=ready_for_review and pull request is draft, skipping update.',
+        );
         return false;
       }
     }

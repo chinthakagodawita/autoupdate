@@ -69,6 +69,10 @@ export class ConfigLoader {
     return this.getValue('GITHUB_REPOSITORY', true, '');
   }
 
+  pullRequestReadyState(): string {
+    return this.getValue('PR_READY_STATE', false, 'all');
+  }
+
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   getValue(key: string, required = false, defaultVal?: any): any {
     if (

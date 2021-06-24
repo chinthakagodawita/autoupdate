@@ -120,6 +120,7 @@ const validPull = {
       },
     },
   },
+  draft: false,
 };
 const clonePull = () => JSON.parse(JSON.stringify(validPull));
 
@@ -451,6 +452,77 @@ describe('test `prNeedsUpdate`', () => {
     expect(comparePr.isDone()).toEqual(true);
     expect(config.pullRequestFilter).toHaveBeenCalled();
     expect(config.excludedLabels).toHaveBeenCalled();
+  });
+
+  describe('pull request ready state filtering', () => {
+    const readyPull = clonePull();
+    const draftPull = Object.assign(clonePull(), { draft: true });
+
+    const nockCompareRequest = () =>
+      nock('https://api.github.com:443')
+        .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+        .reply(200, {
+          behind_by: 1,
+        });
+
+    beforeEach(() => {
+      (config.excludedLabels as jest.Mock).mockReturnValue([]);
+    });
+
+    test('pull request ready state is not filtered', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue('all');
+
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
+
+      const updater = new AutoUpdater(config, emptyEvent);
+
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+
+      expect(readyPullNeedsUpdate).toEqual(true);
+      expect(draftPullNeedsUpdate).toEqual(true);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
+
+    test('pull request is filtered to drafts only', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue('draft');
+
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
+
+      const updater = new AutoUpdater(config, emptyEvent);
+
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+
+      expect(readyPullNeedsUpdate).toEqual(false);
+      expect(draftPullNeedsUpdate).toEqual(true);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
+
+    test('pull request ready state is filtered to ready PRs only', async () => {
+      (config.pullRequestReadyState as jest.Mock).mockReturnValue(
+        'ready_for_review',
+      );
+
+      const readyScope = nockCompareRequest();
+      const draftScope = nockCompareRequest();
+
+      const updater = new AutoUpdater(config, emptyEvent);
+      const readyPullNeedsUpdate = await updater.prNeedsUpdate(readyPull);
+      const draftPullNeedsUpdate = await updater.prNeedsUpdate(draftPull);
+
+      expect(readyPullNeedsUpdate).toEqual(true);
+      expect(draftPullNeedsUpdate).toEqual(false);
+      expect(config.pullRequestReadyState).toHaveBeenCalled();
+      expect(readyScope.isDone()).toEqual(true);
+      expect(draftScope.isDone()).toEqual(true);
+    });
   });
 });
 

@@ -85,6 +85,13 @@ const tests = [
     default: '',
     type: 'string',
   },
+  {
+    name: 'pullRequestReadyState',
+    envVar: 'PR_READY_STATE',
+    required: false,
+    default: 'all',
+    type: 'string',
+  },
 ];
 
 for (const testDef of tests) {

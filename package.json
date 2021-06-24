@@ -19,7 +19,7 @@
     "@actions/core": "^1.2.7",
     "@actions/github": "^4.0.0",
     "@octokit/types": "^6.16.5",
-    "@octokit/webhooks": "^9.0.0",
+    "@octokit/webhooks": "^9.8.4",
     "@types/node": "^15.12.2",
     "@vercel/ncc": "^0.28.6",
     "ttypescript": "^1.5.12",

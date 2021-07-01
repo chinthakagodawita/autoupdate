@@ -16,7 +16,7 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "@actions/core": "^1.2.7",
+    "@actions/core": "^1.4.0",
     "@actions/github": "^4.0.0",
     "@octokit/types": "^6.16.5",
     "@octokit/webhooks": "^9.0.0",

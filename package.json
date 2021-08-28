@@ -12,6 +12,7 @@
   "scripts": {
     "build": "ncc build bin/cli.ts --out dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
+    "lint:fix": "eslint --fix .",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
@@ -38,7 +39,7 @@
     "jest": "^26.6.3",
     "jest-ts-auto-mock": "^2.0.0",
     "nock": "^13.1.0",
-    "prettier": "^2.2.1",
+    "prettier": "^2.3.2",
     "ts-auto-mock": "^3.3.0",
     "ts-jest": "^26.5.6"
   },

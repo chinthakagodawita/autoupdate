@@ -16,7 +16,8 @@ import {
   WorkflowRunEvent,
 } from '@octokit/webhooks-definitions/schema';
 
-type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
+type PullRequestResponse =
+  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 
 jest.mock('../src/config-loader');
 
@@ -132,7 +133,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullRequestResponse['data'],
+      pull as unknown as PullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -145,7 +146,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullRequestResponse['data'],
+      pull as unknown as PullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -160,7 +161,7 @@ describe('test `prNeedsUpdate`', () => {
     });
     const updater = new AutoUpdater(config, {} as WebhookEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (pull as unknown) as PullRequestResponse['data'],
+      pull as unknown as PullRequestResponse['data'],
     );
     expect(needsUpdate).toEqual(false);
   });
@@ -174,7 +175,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -193,7 +194,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);
@@ -250,7 +251,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -296,7 +297,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (invalidLabelPull as unknown) as PullRequestResponse['data'],
+      invalidLabelPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -319,7 +320,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (invalidLabelPull as unknown) as PullRequestResponse['data'],
+      invalidLabelPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -342,7 +343,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -395,7 +396,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);
@@ -423,7 +424,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(false);
@@ -445,7 +446,7 @@ describe('test `prNeedsUpdate`', () => {
 
     const updater = new AutoUpdater(config, emptyEvent);
     const needsUpdate = await updater.prNeedsUpdate(
-      (validPull as unknown) as PullRequestResponse['data'],
+      validPull as unknown as PullRequestResponse['data'],
     );
 
     expect(needsUpdate).toEqual(true);
@@ -638,7 +639,7 @@ describe('test `handleSchedule`', () => {
       .mockImplementation(() => `${owner}/${repo}`);
 
     const event = dummyScheduleEvent;
-    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updater = new AutoUpdater(config, event as unknown as WebhookEvent);
 
     const pullsMock = [];
     const expectedPulls = 5;
@@ -670,7 +671,7 @@ describe('test `handleSchedule`', () => {
       .mockImplementation(() => `refs/heads/${base}`);
 
     const event = dummyScheduleEvent;
-    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updater = new AutoUpdater(config, event as unknown as WebhookEvent);
 
     await expect(updater.handleSchedule()).rejects.toThrowError();
   });
@@ -681,7 +682,7 @@ describe('test `handleSchedule`', () => {
       .mockImplementation(() => `${owner}/${repo}`);
 
     const event = dummyScheduleEvent;
-    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updater = new AutoUpdater(config, event as unknown as WebhookEvent);
     await expect(updater.handleSchedule()).rejects.toThrowError();
   });
 
@@ -692,7 +693,7 @@ describe('test `handleSchedule`', () => {
       .mockImplementation(() => `refs/heads/${base}`);
 
     const event = dummyScheduleEvent;
-    const updater = new AutoUpdater(config, (event as unknown) as WebhookEvent);
+    const updater = new AutoUpdater(config, event as unknown as WebhookEvent);
     const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
 
     const updated = await updater.handleSchedule();

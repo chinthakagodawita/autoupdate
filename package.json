@@ -12,6 +12,7 @@
   "scripts": {
     "build": "ncc build bin/cli.ts --out dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
+    "lint:fix": "eslint --fix .",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },

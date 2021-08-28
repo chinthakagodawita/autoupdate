@@ -15,8 +15,10 @@ type PullRequest =
   | PullRequestResponse['data']
   | PullRequestEvent['pull_request'];
 
-type PullRequestResponse = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
-type MergeParameters = Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
+type PullRequestResponse =
+  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
+type MergeParameters =
+  Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
 export class AutoUpdater {
   // See https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
@@ -364,9 +366,8 @@ export class AutoUpdater {
     };
 
     const doMerge = async () => {
-      const mergeResp: octokit.OctokitResponse<any> = await this.octokit.repos.merge(
-        mergeOpts,
-      );
+      const mergeResp: octokit.OctokitResponse<any> =
+        await this.octokit.repos.merge(mergeOpts);
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;

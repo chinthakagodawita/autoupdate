@@ -879,6 +879,28 @@ describe('test `update`', () => {
     expect(mergeSpy).toHaveBeenCalledTimes(0);
   });
 
+  test('pull request without a head repository', async () => {
+    const updater = new AutoUpdater(config, emptyEvent);
+    const updateSpy = jest
+      .spyOn(updater, 'prNeedsUpdate')
+      .mockResolvedValue(true);
+    const mergeSpy = jest.spyOn(updater, 'merge');
+
+    const pull = {
+      ...validPull,
+      head: {
+        ...validPull.head,
+        repo: null,
+      },
+    };
+
+    const needsUpdate = await updater.update(<any>pull);
+
+    expect(needsUpdate).toEqual(false);
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+    expect(mergeSpy).toHaveBeenCalledTimes(0);
+  });
+
   test('custom merge message', async () => {
     const mergeMsg = 'dummy-merge-msg';
     (config.mergeMsg as jest.Mock).mockReturnValue(mergeMsg);

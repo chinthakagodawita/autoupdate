@@ -19,7 +19,7 @@
   "dependencies": {
     "@actions/core": "^1.5.0",
     "@actions/github": "^4.0.0",
-    "@octokit/types": "^6.16.5",
+    "@octokit/types": "^6.25.0",
     "@octokit/webhooks": "^9.12.0",
     "@octokit/webhooks-definitions": "^3.67.3",
     "@types/node": "^15.12.2",

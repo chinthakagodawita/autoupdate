@@ -11,14 +11,14 @@ import {
 import { ConfigLoader } from './config-loader';
 import { Endpoints } from '@octokit/types';
 
-type PullRequest =
-  | PullRequestResponse['data']
-  | PullRequestEvent['pull_request'];
-
 type PullRequestResponse =
   Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 type MergeParameters =
   Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
+
+type PullRequest =
+  | PullRequestResponse['data']
+  | PullRequestEvent['pull_request'];
 
 export class AutoUpdater {
   // See https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
@@ -188,6 +188,13 @@ export class AutoUpdater {
         `Would have merged ref '${headRef}' into ref '${baseRef}' but DRY_RUN was enabled.`,
       );
       return true;
+    }
+
+    if (pull.head.repo === null) {
+      ghCore.error(
+        `Could not determine repository for this pull request, skipping and continuing with remaining PRs`,
+      );
+      return false;
     }
 
     const mergeMsg = this.config.mergeMsg();

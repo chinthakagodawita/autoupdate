@@ -203,11 +203,13 @@ export class AutoUpdater {
 
     try {
       await this.merge(mergeOpts);
-    } catch (e) {
-      ghCore.error(
-        `Caught error running merge, skipping and continuing with remaining PRs`,
-      );
-      ghCore.setFailed(e);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        ghCore.error(
+          `Caught error running merge, skipping and continuing with remaining PRs`,
+        );
+        ghCore.setFailed(e);
+      }
       return false;
     }
 
@@ -392,20 +394,22 @@ export class AutoUpdater {
         ghCore.info('Attempting branch update...');
         await doMerge();
         break;
-      } catch (e) {
-        if (
-          e.message === 'Merge conflict' &&
-          mergeConflictAction === 'ignore'
-        ) {
-          ghCore.info('Merge conflict detected, skipping update.');
-          break;
-        }
-        if (e.message === 'Merge conflict') {
-          ghCore.error('Merge conflict error trying to update branch');
-          throw e;
-        }
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          if (
+            e.message === 'Merge conflict' &&
+            mergeConflictAction === 'ignore'
+          ) {
+            ghCore.info('Merge conflict detected, skipping update.');
+            break;
+          }
+          if (e.message === 'Merge conflict') {
+            ghCore.error('Merge conflict error trying to update branch');
+            throw e;
+          }
 
-        ghCore.error(`Caught error trying to update branch: ${e.message}`);
+          ghCore.error(`Caught error trying to update branch: ${e.message}`);
+        }
 
         if (retries < retryCount) {
           ghCore.info(

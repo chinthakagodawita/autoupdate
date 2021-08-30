@@ -418,8 +418,10 @@ export class AutoUpdater {
             (e as RequestError).status === 403 &&
             sourceEventOwner !== mergeOpts.owner
           ) {
+            const error = e as Error;
+
             ghCore.error(
-              `Could not update pull request #${prNumber} due to an authorisation error. This is probably because this pull request is from a fork and the current token does not have write access to the forked repository.`,
+              `Could not update pull request #${prNumber} due to an authorisation error. This is probably because this pull request is from a fork and the current token does not have write access to the forked repository. Error was: ${error.message}`,
             );
 
             return false;

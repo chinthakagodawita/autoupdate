@@ -383,7 +383,7 @@ export class AutoUpdater {
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;
-      if (status === 200) {
+      if (status === 200 || status === 201) {
         ghCore.info(
           `Branch update successful, new branch HEAD: ${mergeResp.data.sha}.`,
         );

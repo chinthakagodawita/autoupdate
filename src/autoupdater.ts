@@ -9,7 +9,7 @@ import {
   WorkflowRunEvent,
 } from '@octokit/webhooks-definitions/schema';
 import { ConfigLoader } from './config-loader';
-import { Endpoints } from '@octokit/types';
+import { Endpoints, RequestError } from '@octokit/types';
 
 type PullRequestResponse =
   Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
@@ -50,7 +50,10 @@ export class AutoUpdater {
 
     ghCore.info(`Handling pull_request event triggered by action '${action}'`);
 
-    const isUpdated = await this.update(pull_request);
+    const isUpdated = await this.update(
+      pull_request.head.repo.owner.login,
+      pull_request,
+    );
     if (isUpdated) {
       ghCore.info(
         'Auto update complete, pull request branch was updated with changes from the base branch.',
@@ -152,7 +155,7 @@ export class AutoUpdater {
       let pull: PullRequestResponse['data'];
       for (pull of pullsPage.data) {
         ghCore.startGroup(`PR-${pull.number}`);
-        const isUpdated = await this.update(pull);
+        const isUpdated = await this.update(owner, pull);
         ghCore.endGroup();
 
         if (isUpdated) {
@@ -168,7 +171,7 @@ export class AutoUpdater {
     return updated;
   }
 
-  async update(pull: PullRequest): Promise<boolean> {
+  async update(sourceEventOwner: string, pull: PullRequest): Promise<boolean> {
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -211,7 +214,7 @@ export class AutoUpdater {
     }
 
     try {
-      await this.merge(mergeOpts);
+      return await this.merge(sourceEventOwner, pull.number, mergeOpts);
     } catch (e: unknown) {
       if (e instanceof Error) {
         ghCore.error(
@@ -221,8 +224,6 @@ export class AutoUpdater {
       }
       return false;
     }
-
-    return true;
   }
 
   async prNeedsUpdate(pull: PullRequest): Promise<boolean> {
@@ -365,7 +366,11 @@ export class AutoUpdater {
     return true;
   }
 
-  async merge(mergeOpts: MergeParameters): Promise<boolean> {
+  async merge(
+    sourceEventOwner: string,
+    prNumber: number,
+    mergeOpts: MergeParameters,
+  ): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
         setTimeout(resolve, timeMs);
@@ -378,7 +383,7 @@ export class AutoUpdater {
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;
-      if (status === 200) {
+      if (status === 200 || status === 201) {
         ghCore.info(
           `Branch update successful, new branch HEAD: ${mergeResp.data.sha}.`,
         );
@@ -404,13 +409,35 @@ export class AutoUpdater {
         break;
       } catch (e: unknown) {
         if (e instanceof Error) {
+          /**
+           * If this update was against a fork and we got a 403 then it's
+           * probably because we don't have access to it.
+           */
+          if (
+            'status' in e &&
+            (e as RequestError).status === 403 &&
+            sourceEventOwner !== mergeOpts.owner
+          ) {
+            const error = e as Error;
+
+            ghCore.error(
+              `Could not update pull request #${prNumber} due to an authorisation error. This is probably because this pull request is from a fork and the current token does not have write access to the forked repository. Error was: ${error.message}`,
+            );
+
+            return false;
+          }
+
+          // Ignore conflicts if configured to do so.
           if (
             e.message === 'Merge conflict' &&
             mergeConflictAction === 'ignore'
           ) {
             ghCore.info('Merge conflict detected, skipping update.');
-            break;
+
+            return false;
           }
+
+          // Else, throw an error so we don't continue retrying.
           if (e.message === 'Merge conflict') {
             ghCore.error('Merge conflict error trying to update branch');
             throw e;
@@ -431,6 +458,7 @@ export class AutoUpdater {
         }
       }
     }
+
     return true;
   }
 }

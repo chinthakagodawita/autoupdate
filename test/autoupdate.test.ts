@@ -860,7 +860,7 @@ describe('test `update`', () => {
     const updateSpy = jest
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(false);
-    const needsUpdate = await updater.update(<any>validPull);
+    const needsUpdate = await updater.update(owner, <any>validPull);
     expect(needsUpdate).toEqual(false);
     expect(updateSpy).toHaveBeenCalledTimes(1);
   });
@@ -872,7 +872,7 @@ describe('test `update`', () => {
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge');
-    const needsUpdate = await updater.update(<any>validPull);
+    const needsUpdate = await updater.update(owner, <any>validPull);
 
     expect(needsUpdate).toEqual(true);
     expect(updateSpy).toHaveBeenCalledTimes(1);
@@ -894,7 +894,7 @@ describe('test `update`', () => {
       },
     };
 
-    const needsUpdate = await updater.update(<any>pull);
+    const needsUpdate = await updater.update(owner, <any>pull);
 
     expect(needsUpdate).toEqual(false);
     expect(updateSpy).toHaveBeenCalledTimes(1);
@@ -910,7 +910,7 @@ describe('test `update`', () => {
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue(true);
-    const needsUpdate = await updater.update(<any>validPull);
+    const needsUpdate = await updater.update(owner, <any>validPull);
 
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
@@ -922,7 +922,11 @@ describe('test `update`', () => {
 
     expect(needsUpdate).toEqual(true);
     expect(updateSpy).toHaveBeenCalledTimes(1);
-    expect(mergeSpy).toHaveBeenCalledWith(expectedMergeOpts);
+    expect(mergeSpy).toHaveBeenCalledWith(
+      owner,
+      validPull.number,
+      expectedMergeOpts,
+    );
   });
 
   test('merge with no message', async () => {
@@ -933,7 +937,7 @@ describe('test `update`', () => {
       .spyOn(updater, 'prNeedsUpdate')
       .mockResolvedValue(true);
     const mergeSpy = jest.spyOn(updater, 'merge').mockResolvedValue(true);
-    const needsUpdate = await updater.update(<any>validPull);
+    const needsUpdate = await updater.update(owner, <any>validPull);
 
     const expectedMergeOpts = {
       owner: validPull.head.repo.owner.login,
@@ -944,7 +948,11 @@ describe('test `update`', () => {
 
     expect(needsUpdate).toEqual(true);
     expect(updateSpy).toHaveBeenCalledTimes(1);
-    expect(mergeSpy).toHaveBeenCalledWith(expectedMergeOpts);
+    expect(mergeSpy).toHaveBeenCalledWith(
+      owner,
+      validPull.number,
+      expectedMergeOpts,
+    );
   });
 });
 
@@ -973,6 +981,11 @@ describe('test `merge`', () => {
       description: 'merge error',
       success: false,
     },
+    {
+      code: 403,
+      description: 'authorisation error',
+      success: false,
+    },
   ];
 
   for (const responseTest of responseCodeTests) {
@@ -991,9 +1004,9 @@ describe('test `merge`', () => {
         .reply(responseTest.code);
 
       if (responseTest.success) {
-        await updater.merge(mergeOpts);
+        await updater.merge(owner, 1, mergeOpts);
       } else {
-        await expect(updater.merge(mergeOpts)).rejects.toThrowError();
+        await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError();
       }
 
       expect(scope.isDone()).toEqual(true);
@@ -1018,11 +1031,51 @@ describe('test `merge`', () => {
       scopes.push(scope);
     }
 
-    await expect(updater.merge(mergeOpts)).rejects.toThrowError();
+    await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError();
 
     for (const scope of scopes) {
       expect(scope.isDone()).toEqual(true);
     }
+  });
+
+  test('handles fork authorisation errors', async () => {
+    (config.retryCount as jest.Mock).mockReturnValue(0);
+    const updater = new AutoUpdater(config, emptyEvent);
+
+    const scope = nock('https://api.github.com:443')
+      .post(`/repos/${owner}/${repo}/merges`, {
+        commit_message: mergeOpts.commit_message,
+        base: mergeOpts.base,
+        head: mergeOpts.head,
+      })
+      .reply(403, {
+        message: 'Must have admin rights to Repository.',
+      });
+
+    await updater.merge('some-other-owner', 1, mergeOpts);
+
+    expect(scope.isDone()).toEqual(true);
+  });
+
+  test('throws an error on non-fork authorisation errors', async () => {
+    (config.retryCount as jest.Mock).mockReturnValue(0);
+    const updater = new AutoUpdater(config, emptyEvent);
+
+    const scope = nock('https://api.github.com:443')
+      .post(`/repos/${owner}/${repo}/merges`, {
+        commit_message: mergeOpts.commit_message,
+        base: mergeOpts.base,
+        head: mergeOpts.head,
+      })
+      .reply(403, {
+        message: 'Must have admin rights to Repository.',
+      });
+
+    await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError(
+      'Must have admin rights to Repository.',
+    );
+
+    expect(scope.isDone()).toEqual(true);
   });
 
   test('ignore merge conflicts', async () => {
@@ -1040,7 +1093,7 @@ describe('test `merge`', () => {
         message: 'Merge conflict',
       });
 
-    await updater.merge(mergeOpts);
+    await updater.merge(owner, 1, mergeOpts);
 
     expect(scope.isDone()).toEqual(true);
   });
@@ -1060,7 +1113,7 @@ describe('test `merge`', () => {
         message: 'Merge conflict',
       });
 
-    await expect(updater.merge(mergeOpts)).rejects.toThrowError(
+    await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError(
       'Merge conflict',
     );
 

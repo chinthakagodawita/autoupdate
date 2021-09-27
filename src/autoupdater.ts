@@ -341,7 +341,7 @@ export class AutoUpdater {
       return false;
     }
 
-    if (this.config.pullRequestFilter() === 'protected') {
+    if (prFilter === 'protected') {
       ghCore.info('Checking if this PR is against a protected branch.');
       const { data: branch } = await this.octokit.repos.getBranch({
         owner: pull.head.repo.owner.login,
@@ -360,6 +360,24 @@ export class AutoUpdater {
         'Pull request is not against a protected branch, skipping update.',
       );
       return false;
+    }
+
+    if (prFilter === 'auto_merge') {
+      ghCore.info('Checking if this PR has auto_merge enabled.');
+
+      if (pull.auto_merge === null) {
+        ghCore.info(
+          'Pull request does not have auto_merge enabled, skipping update.',
+        );
+
+        return false;
+      }
+
+      ghCore.info(
+        'Pull request has auto_merge enabled and is behind base branch.',
+      );
+
+      return true;
     }
 
     ghCore.info('All checks pass and PR branch is behind base branch.');

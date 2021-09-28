@@ -141,7 +141,7 @@ export class AutoUpdater {
     }
 
     let updated = 0;
-    const paginatorOpts = this.octokit.pulls.list.endpoint.merge({
+    const paginatorOpts = this.octokit.rest.pulls.list.endpoint.merge({
       owner: owner,
       repo: repoName,
       base: baseBranch,
@@ -244,7 +244,7 @@ export class AutoUpdater {
       return false;
     }
 
-    const { data: comparison } = await this.octokit.repos.compareCommits({
+    const { data: comparison } = await this.octokit.rest.repos.compareCommits({
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
       // This base->head, head->base logic is intentional, we want
@@ -343,7 +343,7 @@ export class AutoUpdater {
 
     if (this.config.pullRequestFilter() === 'protected') {
       ghCore.info('Checking if this PR is against a protected branch.');
-      const { data: branch } = await this.octokit.repos.getBranch({
+      const { data: branch } = await this.octokit.rest.repos.getBranch({
         owner: pull.head.repo.owner.login,
         repo: pull.head.repo.name,
         branch: pull.base.ref,
@@ -378,8 +378,9 @@ export class AutoUpdater {
     };
 
     const doMerge = async () => {
-      const mergeResp: octokit.OctokitResponse<any> =
-        await this.octokit.repos.merge(mergeOpts);
+      const mergeResp: octokit.OctokitResponse<any> = await this.octokit.rest.repos.merge(
+        mergeOpts,
+      );
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;

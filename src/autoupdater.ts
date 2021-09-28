@@ -378,9 +378,8 @@ export class AutoUpdater {
     };
 
     const doMerge = async () => {
-      const mergeResp: octokit.OctokitResponse<any> = await this.octokit.rest.repos.merge(
-        mergeOpts,
-      );
+      const mergeResp: octokit.OctokitResponse<any> =
+        await this.octokit.rest.repos.merge(mergeOpts);
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;

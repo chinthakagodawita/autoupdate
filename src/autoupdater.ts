@@ -172,6 +172,7 @@ export class AutoUpdater {
   }
 
   async update(sourceEventOwner: string, pull: PullRequest): Promise<boolean> {
+    console.log('Updating...............');
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -227,6 +228,7 @@ export class AutoUpdater {
   }
 
   async prNeedsUpdate(pull: PullRequest): Promise<boolean> {
+    console.log('Checking if PR needs update');
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -244,18 +246,25 @@ export class AutoUpdater {
       return false;
     }
 
-    const { data: comparison } = await this.octokit.rest.repos.compareCommits({
-      owner: pull.head.repo.owner.login,
-      repo: pull.head.repo.name,
-      // This base->head, head->base logic is intentional, we want
-      // to see what would happen if we merged the base into head not
-      // vice-versa.
-      base: pull.head.label,
-      head: pull.base.label,
-    });
+    try {
+      const { data: comparison } =
+        await this.octokit.rest.repos.compareCommitsWithBasehead({
+          owner: pull.head.repo.owner.login,
+          repo: pull.head.repo.name,
+          // This base->head, head->base logic is intentional, we want
+          // to see what would happen if we merged the base into head not
+          // vice-versa. This parameter expects the format {base}...{head}.
+          basehead: `${pull.head.label}...${pull.base.label}`,
+        });
 
-    if (comparison.behind_by === 0) {
-      ghCore.info('Skipping pull request, up-to-date with base branch.');
+      if (comparison.behind_by === 0) {
+        ghCore.info('Skipping pull request, up-to-date with base branch.');
+        return false;
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        `Caught error trying to evaluate PR: ${e.message}`;
+      }
       return false;
     }
 

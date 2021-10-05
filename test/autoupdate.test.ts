@@ -1038,6 +1038,21 @@ describe('test `merge`', () => {
     }
   });
 
+  test('handles errors from compareCommitsWithBasehead', async () => {
+    (config.retryCount as jest.Mock).mockReturnValue(0);
+    const updater = new AutoUpdater(config, emptyEvent);
+
+    const scope = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(404, {
+        message: 'Not Found',
+      });
+
+    const needsUpdate = await updater.update(owner, <any>validPull);
+    expect(needsUpdate).toEqual(false);
+    expect(scope.isDone()).toEqual(true);
+  });
+
   test('handles fork authorisation errors', async () => {
     (config.retryCount as jest.Mock).mockReturnValue(0);
     const updater = new AutoUpdater(config, emptyEvent);

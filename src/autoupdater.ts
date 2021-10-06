@@ -172,7 +172,6 @@ export class AutoUpdater {
   }
 
   async update(sourceEventOwner: string, pull: PullRequest): Promise<boolean> {
-    console.log('Updating...............');
     const { ref } = pull.head;
     ghCore.info(`Evaluating pull request #${pull.number}...`);
 
@@ -228,7 +227,6 @@ export class AutoUpdater {
   }
 
   async prNeedsUpdate(pull: PullRequest): Promise<boolean> {
-    console.log('Checking if PR needs update');
     if (pull.merged === true) {
       ghCore.warning('Skipping pull request, already merged.');
       return false;
@@ -263,7 +261,9 @@ export class AutoUpdater {
       }
     } catch (e: unknown) {
       if (e instanceof Error) {
-        `Caught error trying to evaluate PR: ${e.message}`;
+        ghCore.error(
+          `Caught error trying to compare base with head: ${e.message}`,
+        );
       }
       return false;
     }

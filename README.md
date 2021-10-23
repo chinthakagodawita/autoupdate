@@ -58,6 +58,7 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
   - `"all"` (default): No filter, _autoupdate_ will monitor and update all pull requests.
   - `"labelled"`: Only monitor PRs with a particular label (or set of labels). Requires the `PR_LABELS` option to be defined to. If `PR_LABELS` is not defined, _autoupdate_ will not monitor any pull requests.
   - `"protected"`: Only monitor PRs that are raised against [protected branches](https://help.github.com/en/github/administering-a-repository/about-protected-branches).
+  - `"auto_merge"`: Only monitor PRs that have ['auto merge'](https://docs.github.com/en/github/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) enabled
 
 - `PR_LABELS`: Controls which labels _autoupdate_ will look for when monitoring PRs. Only used if `PR_FILTER="labelled"`. This can be either a single label or a comma-separated list of labels.
 

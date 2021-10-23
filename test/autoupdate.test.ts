@@ -434,6 +434,59 @@ describe('test `prNeedsUpdate`', () => {
     expect(config.excludedLabels).toHaveBeenCalled();
   });
 
+  test('pull request is against branch with auto_merge enabled', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('auto_merge');
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+
+    const comparePr = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, emptyEvent);
+
+    const pull = {
+      ...validPull,
+      auto_merge: {
+        enabled_by: {
+          login: 'chinthakagodawita',
+        },
+        merge_method: 'squash',
+        commit_title: 'some-commit-title',
+        commit_message: 'fixing a thing',
+      },
+    } as unknown as PullRequestResponse['data'];
+    const needsUpdate = await updater.prNeedsUpdate(pull);
+
+    expect(needsUpdate).toEqual(true);
+    expect(comparePr.isDone()).toEqual(true);
+    expect(config.pullRequestFilter).toHaveBeenCalled();
+  });
+
+  test('pull request is against branch with auto_merge disabled', async () => {
+    (config.pullRequestFilter as jest.Mock).mockReturnValue('auto_merge');
+    (config.excludedLabels as jest.Mock).mockReturnValue([]);
+
+    const comparePr = nock('https://api.github.com:443')
+      .get(`/repos/${owner}/${repo}/compare/${head}...${base}`)
+      .reply(200, {
+        behind_by: 1,
+      });
+
+    const updater = new AutoUpdater(config, emptyEvent);
+
+    const pull = {
+      ...validPull,
+      auto_merge: null,
+    } as unknown as PullRequestResponse['data'];
+    const needsUpdate = await updater.prNeedsUpdate(pull);
+
+    expect(needsUpdate).toEqual(false);
+    expect(comparePr.isDone()).toEqual(true);
+    expect(config.pullRequestFilter).toHaveBeenCalled();
+  });
+
   test('no filters configured', async () => {
     (config.pullRequestFilter as jest.Mock).mockReturnValue('all');
     (config.excludedLabels as jest.Mock).mockReturnValue([]);

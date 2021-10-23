@@ -15,7 +15,7 @@ export class ConfigLoader {
   }
 
   pullRequestFilter(): string {
-    // one of 'all', 'protected' or 'labelled'.
+    // one of 'all', 'protected', 'labelled' or 'auto_merge'.
     return this.getValue('PR_FILTER', false, 'all');
   }
 

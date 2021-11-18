@@ -365,7 +365,7 @@ export class AutoUpdater {
     if (prFilter === 'auto_merge') {
       ghCore.info('Checking if this PR has auto_merge enabled.');
 
-      if (pull.auto_merge === null) {
+      if (pull.auto_merge) {
         ghCore.info(
           'Pull request does not have auto_merge enabled, skipping update.',
         );

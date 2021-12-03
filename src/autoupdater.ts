@@ -445,20 +445,20 @@ export class AutoUpdater {
             return false;
           }
 
-          // Ignore conflicts if configured to do so.
-          if (
-            e.message === 'Merge conflict' &&
-            mergeConflictAction === 'ignore'
-          ) {
-            ghCore.info('Merge conflict detected, skipping update.');
-
-            return false;
-          }
-
-          // Else, throw an error so we don't continue retrying.
           if (e.message === 'Merge conflict') {
-            ghCore.error('Merge conflict error trying to update branch');
-            throw e;
+            ghCore.setOutput('conflicted', true);
+
+            if (mergeConflictAction === 'ignore') {
+              // Ignore conflicts if configured to do so.
+              ghCore.info('Merge conflict detected, skipping update.');
+              return false;
+            } else {
+              // Else, throw an error so we don't continue retrying.
+              ghCore.error('Merge conflict error trying to update branch');
+              throw e;
+            }
+          } else {
+            ghCore.setOutput('conflicted', false);
           }
 
           ghCore.error(`Caught error trying to update branch: ${e.message}`);

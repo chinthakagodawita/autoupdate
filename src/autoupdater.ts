@@ -9,16 +9,18 @@ import {
   WorkflowRunEvent,
 } from '@octokit/webhooks-definitions/schema';
 import { ConfigLoader } from './config-loader';
-import { Endpoints, RequestError } from '@octokit/types';
+import { Output } from './Output';
 
 type PullRequestResponse =
-  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
+  octokit.Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 type MergeParameters =
-  Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
+  octokit.Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 
 type PullRequest =
   | PullRequestResponse['data']
   | PullRequestEvent['pull_request'];
+
+type SetOutputFn = typeof ghCore.setOutput;
 
 export class AutoUpdater {
   // See https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
@@ -388,6 +390,8 @@ export class AutoUpdater {
     sourceEventOwner: string,
     prNumber: number,
     mergeOpts: MergeParameters,
+    // Allows for mocking in tests.
+    setOutputFn: SetOutputFn = ghCore.setOutput,
   ): Promise<boolean> {
     const sleep = (timeMs: number) => {
       return new Promise((resolve) => {
@@ -423,7 +427,11 @@ export class AutoUpdater {
     while (true) {
       try {
         ghCore.info('Attempting branch update...');
+
         await doMerge();
+
+        setOutputFn(Output.Conflicted, false);
+
         break;
       } catch (e: unknown) {
         if (e instanceof Error) {
@@ -433,7 +441,7 @@ export class AutoUpdater {
            */
           if (
             'status' in e &&
-            (e as RequestError).status === 403 &&
+            (e as octokit.RequestError).status === 403 &&
             sourceEventOwner !== mergeOpts.owner
           ) {
             const error = e as Error;
@@ -442,23 +450,23 @@ export class AutoUpdater {
               `Could not update pull request #${prNumber} due to an authorisation error. This is probably because this pull request is from a fork and the current token does not have write access to the forked repository. Error was: ${error.message}`,
             );
 
-            return false;
-          }
-
-          // Ignore conflicts if configured to do so.
-          if (
-            e.message === 'Merge conflict' &&
-            mergeConflictAction === 'ignore'
-          ) {
-            ghCore.info('Merge conflict detected, skipping update.');
+            setOutputFn(Output.Conflicted, false);
 
             return false;
           }
 
-          // Else, throw an error so we don't continue retrying.
           if (e.message === 'Merge conflict') {
-            ghCore.error('Merge conflict error trying to update branch');
-            throw e;
+            setOutputFn(Output.Conflicted, true);
+
+            if (mergeConflictAction === 'ignore') {
+              // Ignore conflicts if configured to do so.
+              ghCore.info('Merge conflict detected, skipping update.');
+              return false;
+            } else {
+              // Else, throw an error so we don't continue retrying.
+              ghCore.error('Merge conflict error trying to update branch');
+              throw e;
+            }
           }
 
           ghCore.error(`Caught error trying to update branch: ${e.message}`);
@@ -472,6 +480,8 @@ export class AutoUpdater {
           retries++;
           await sleep(retrySleep);
         } else {
+          setOutputFn(Output.Conflicted, false);
+
           throw e;
         }
       }

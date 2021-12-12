@@ -104,6 +104,36 @@ jobs:
           MERGE_CONFLICT_ACTION: "fail"
 ```
 
+## Outputs
+
+| Name         | Description                                                                 |
+|--------------|-----------------------------------------------------------------------------|
+| `conflicted` | `true` or `false` which indicates whether merge conflicts were found or not |
+
+Here's an example workflow file with the outputs above:
+
+```yaml
+name: autoupdate
+on:
+  push: {}
+jobs:
+  autoupdate:
+    name: autoupdate
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: docker://chinthakagodawita/autoupdate-action:v1
+        id: autoupdate
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_CONFLICT_ACTION: "ignore"
+
+      - run: echo 'Merge conflicts found!'
+        if: ${{ steps.autoupdate.outputs.conflicted }}
+
+      - run: echo 'No merge conflicts'
+        if: ${{ !steps.autoupdate.outputs.conflicted }}
+```
+
 ## Examples
 
 See [chinthakagodawita/autoupdate-test/pulls](https://github.com/chinthakagodawita/autoupdate-test/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc) for a repository where autoupdate is enabled. This is currently configured to only run on PRs that have the `autoupdate` tag added to them.

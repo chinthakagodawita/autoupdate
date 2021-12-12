@@ -106,11 +106,11 @@ jobs:
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| conflicted | 'true' or 'false' which indicates whether merge conflicts found or not |
+| Name         | Description                                                                 |
+|--------------|-----------------------------------------------------------------------------|
+| `conflicted` | `true` or `false` which indicates whether merge conflicts were found or not |
 
-Here's a small example workflow file with outputs above:
+Here's an example workflow file with the outputs above:
 
 ```yaml
 name: autoupdate
@@ -127,8 +127,11 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_CONFLICT_ACTION: "ignore"
 
-      - run: echo 'merge conflicts found!'
-        if: steps.autoupdate.outputs.conflicted
+      - run: echo 'Merge conflicts found!'
+        if: ${{ steps.autoupdate.outputs.conflicted }}
+
+      - run: echo 'No merge conflicts'
+        if: ${{ !steps.autoupdate.outputs.conflicted }}
 ```
 
 ## Examples

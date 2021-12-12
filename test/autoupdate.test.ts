@@ -8,6 +8,7 @@ import { createMock } from 'ts-auto-mock';
 import nock from 'nock';
 import config from '../src/config-loader';
 import { AutoUpdater } from '../src/autoupdater';
+import { Output } from '../src/Output';
 import { Endpoints } from '@octokit/types';
 import {
   PullRequestEvent,
@@ -1056,11 +1057,18 @@ describe('test `merge`', () => {
         })
         .reply(responseTest.code);
 
+      const setOutput = jest.fn();
+
       if (responseTest.success) {
-        await updater.merge(owner, 1, mergeOpts);
+        await updater.merge(owner, 1, mergeOpts, setOutput);
       } else {
-        await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError();
+        await expect(
+          updater.merge(owner, 1, mergeOpts, setOutput),
+        ).rejects.toThrowError();
       }
+
+      expect(setOutput).toHaveBeenCalledTimes(1);
+      expect(setOutput).toHaveBeenCalledWith(Output.Conflicted, false);
 
       expect(scope.isDone()).toEqual(true);
     });
@@ -1105,7 +1113,12 @@ describe('test `merge`', () => {
         message: 'Must have admin rights to Repository.',
       });
 
-    await updater.merge('some-other-owner', 1, mergeOpts);
+    const setOutput = jest.fn();
+
+    await updater.merge('some-other-owner', 1, mergeOpts, setOutput);
+
+    expect(setOutput).toHaveBeenCalledTimes(1);
+    expect(setOutput).toHaveBeenCalledWith(Output.Conflicted, false);
 
     expect(scope.isDone()).toEqual(true);
   });
@@ -1124,9 +1137,14 @@ describe('test `merge`', () => {
         message: 'Must have admin rights to Repository.',
       });
 
-    await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError(
-      'Must have admin rights to Repository.',
-    );
+    const setOutput = jest.fn();
+
+    await expect(
+      updater.merge(owner, 1, mergeOpts, setOutput),
+    ).rejects.toThrowError('Must have admin rights to Repository.');
+
+    expect(setOutput).toHaveBeenCalledTimes(1);
+    expect(setOutput).toHaveBeenCalledWith(Output.Conflicted, false);
 
     expect(scope.isDone()).toEqual(true);
   });
@@ -1146,9 +1164,13 @@ describe('test `merge`', () => {
         message: 'Merge conflict',
       });
 
-    await updater.merge(owner, 1, mergeOpts);
+    const setOutput = jest.fn();
+    await updater.merge(owner, 1, mergeOpts, setOutput);
 
     expect(scope.isDone()).toEqual(true);
+
+    expect(setOutput).toHaveBeenCalledTimes(1);
+    expect(setOutput).toHaveBeenCalledWith(Output.Conflicted, true);
   });
 
   test('not ignoring merge conflicts', async () => {
@@ -1166,11 +1188,15 @@ describe('test `merge`', () => {
         message: 'Merge conflict',
       });
 
-    await expect(updater.merge(owner, 1, mergeOpts)).rejects.toThrowError(
-      'Merge conflict',
-    );
+    const setOutput = jest.fn();
+    await expect(
+      updater.merge(owner, 1, mergeOpts, setOutput),
+    ).rejects.toThrowError('Merge conflict');
 
     expect(scope.isDone()).toEqual(true);
+
+    expect(setOutput).toHaveBeenCalledTimes(1);
+    expect(setOutput).toHaveBeenCalledWith(Output.Conflicted, true);
   });
 
   test('continue if merging throws an error', async () => {

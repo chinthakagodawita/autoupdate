@@ -7,6 +7,7 @@ import {
   PushEvent,
   WebhookEvent,
   WorkflowRunEvent,
+  WorkflowDispatchEvent,
 } from '@octokit/webhooks-definitions/schema';
 import { ConfigLoader } from './config-loader';
 import { Output } from './Output';
@@ -112,6 +113,19 @@ export class AutoUpdater {
     // get multiple PRs.
     return await this.pulls(
       `refs/heads/${branch}`,
+      repository.name,
+      repository.owner.login,
+      repository.owner.name,
+    );
+  }
+
+  async handleWorkflowDispatch(): Promise<number> {
+    const { ref: ref, repository } = this.eventData as WorkflowDispatchEvent;
+
+    ghCore.info(`Handling workflow_dispatch event on ref '${ref}'`);
+
+    return await this.pulls(
+      ref,
       repository.name,
       repository.owner.login,
       repository.owner.name,

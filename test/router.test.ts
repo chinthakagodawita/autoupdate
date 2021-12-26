@@ -54,6 +54,16 @@ test('"workflow_run" events', async () => {
   expect(autoUpdateInstance.handleWorkflowRun).toHaveBeenCalledTimes(1);
 });
 
+test('"workflow_dispatch" events', async () => {
+  const router = new Router(config, {} as WebhookEvent);
+  expect(AutoUpdater).toHaveBeenCalledTimes(1);
+
+  await router.route('workflow_dispatch');
+
+  const autoUpdateInstance = (AutoUpdater as jest.Mock).mock.instances[0];
+  expect(autoUpdateInstance.handleWorkflowDispatch).toHaveBeenCalledTimes(1);
+});
+
 test('"schedule" events', async () => {
   const router = new Router(config, {} as WebhookEvent);
   expect(AutoUpdater).toHaveBeenCalledTimes(1);

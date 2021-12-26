@@ -14,6 +14,7 @@ import {
   PullRequestEvent,
   PushEvent,
   WebhookEvent,
+  WorkflowDispatchEvent,
   WorkflowRunEvent,
 } from '@octokit/webhooks-definitions/schema';
 
@@ -35,6 +36,15 @@ const head = 'develop';
 const branch = 'not-a-real-branch';
 
 const dummyPushEvent = createMock<PushEvent>({
+  ref: `refs/heads/${branch}`,
+  repository: {
+    owner: {
+      login: owner,
+    },
+    name: repo,
+  },
+});
+const dummyWorkflowDispatchEvent = createMock<WorkflowDispatchEvent>({
   ref: `refs/heads/${branch}`,
   repository: {
     owner: {
@@ -754,6 +764,35 @@ describe('test `handleSchedule`', () => {
 
     expect(updated).toEqual(0);
     expect(updateSpy).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('test `handleWorkflowDispatch`', () => {
+  test('workflow dispatch event', async () => {
+    const updater = new AutoUpdater(config, dummyWorkflowDispatchEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 5;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handleWorkflowDispatch();
+
+    expect(updated).toEqual(expectedPulls);
+    expect(updateSpy).toHaveBeenCalledTimes(expectedPulls);
+    expect(scope.isDone()).toEqual(true);
   });
 });
 

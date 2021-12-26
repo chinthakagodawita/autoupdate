@@ -120,7 +120,7 @@ export class AutoUpdater {
   }
 
   async handleWorkflowDispatch(): Promise<number> {
-    const { ref: ref, repository } = this.eventData as WorkflowDispatchEvent;
+    const { ref, repository } = this.eventData as WorkflowDispatchEvent;
 
     ghCore.info(`Handling workflow_dispatch event on ref '${ref}'`);
 

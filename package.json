@@ -10,7 +10,7 @@
     "autoupdate-action": "bin/cli.js"
   },
   "scripts": {
-    "build": "ncc build bin/cli.ts --out dist",
+    "build": "tsc bin/cli.ts --outDir dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
     "lint:fix": "eslint --fix .",
     "test": "jest",
@@ -23,7 +23,6 @@
     "@octokit/webhooks": "^9.12.0",
     "@octokit/webhooks-definitions": "^3.67.3",
     "@types/node": "^16.10.2",
-    "@vercel/ncc": "^0.28.6",
     "ttypescript": "^1.5.12",
     "typescript": "^4.4.2"
   },

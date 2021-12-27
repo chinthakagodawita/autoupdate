@@ -20,6 +20,6 @@ RUN apk add --update --no-cache ca-certificates \
 
 WORKDIR /opt/autoupdate
 
-COPY --from=builder /opt/autoupdate/dist/index.js /opt/autoupdate/index.js
+COPY --from=builder /opt/autoupdate/dist /opt/autoupdate
 
-ENTRYPOINT [ "node", "/opt/autoupdate/index.js" ]
+ENTRYPOINT [ "node", "/opt/autoupdate/bin/cli.js" ]

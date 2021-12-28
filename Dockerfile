@@ -6,7 +6,7 @@ WORKDIR /opt/autoupdate
 
 COPY . /opt/autoupdate/
 
-RUN yarn install --frozen-lockfile && yarn run build
+RUN yarn install --immutable --production=true && yarn run build
 
 FROM node:16-alpine as runner
 
@@ -21,5 +21,6 @@ RUN apk add --update --no-cache ca-certificates \
 WORKDIR /opt/autoupdate
 
 COPY --from=builder /opt/autoupdate/dist /opt/autoupdate
+COPY --from=builder /opt/autoupdate/node_modules /opt/autoupdate/node_modules
 
 ENTRYPOINT [ "node", "/opt/autoupdate/bin/cli.js" ]

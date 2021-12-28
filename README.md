@@ -37,6 +37,7 @@ The following events are supported:
 - push
 - pull_request
 - workflow_run
+- workflow_dispatch
 - schedule
 
 ## Configuration
@@ -107,7 +108,7 @@ jobs:
 ## Outputs
 
 | Name         | Description                                                                 |
-|--------------|-----------------------------------------------------------------------------|
+| ------------ | --------------------------------------------------------------------------- |
 | `conflicted` | `true` or `false` which indicates whether merge conflicts were found or not |
 
 Here's an example workflow file with the outputs above:

@@ -22,6 +22,8 @@ export class Router {
       await this.updater.handlePush();
     } else if (eventName === 'workflow_run') {
       await this.updater.handleWorkflowRun();
+    } else if (eventName === 'workflow_dispatch') {
+      await this.updater.handleWorkflowDispatch();
     } else if (eventName === 'schedule') {
       await this.updater.handleSchedule();
     } else {

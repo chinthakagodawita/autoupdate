@@ -14,7 +14,7 @@
       {
         "transform": "ts-auto-mock/transformer",
         "cacheBetweenTests": false
-      },
+      }
     ]
   },
   "include": ["src/**/*"],

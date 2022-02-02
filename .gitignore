@@ -13,7 +13,5 @@ node_modules/
 bin/local.js
 /coverage
 
-dist
-
 src/*.js
 bin/*.js

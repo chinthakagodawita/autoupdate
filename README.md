@@ -23,7 +23,7 @@ jobs:
     name: autoupdate
     runs-on: ubuntu-20.04
     steps:
-      - uses: docker://chinthakagodawita/autoupdate-action:v1
+      - uses: chinthakagodawita/autoupdate:v1.6.0
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 ```
@@ -92,7 +92,7 @@ jobs:
     name: autoupdate
     runs-on: ubuntu-18.04
     steps:
-      - uses: docker://chinthakagodawita/autoupdate-action:v1
+      - uses: chinthakagodawita/autoupdate:v1.6.0
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           DRY_RUN: "false"
@@ -122,7 +122,7 @@ jobs:
     name: autoupdate
     runs-on: ubuntu-18.04
     steps:
-      - uses: docker://chinthakagodawita/autoupdate-action:v1
+      - uses: chinthakagodawita/autoupdate:v1.6.0
         id: autoupdate
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

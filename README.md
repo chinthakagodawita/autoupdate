@@ -54,7 +54,7 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 
   In dry run mode, merge/update operations are logged to the console but not performed. This can be useful if you're testing this action or testing a particular configuration value.
 
-- `PR_FILTER`: Controls how _autoupdate_ chooses which pull requests to operate on. Possible values are:
+- `PR_FILTER`: Comma-separated list of controls for how _autoupdate_ chooses which pull requests to operate on. Multiple values act as an `AND`. Possible values are:
 
   - `"all"` (default): No filter, _autoupdate_ will monitor and update all pull requests.
   - `"labelled"`: Only monitor PRs with a particular label (or set of labels). Requires the `PR_LABELS` option to be defined to. If `PR_LABELS` is not defined, _autoupdate_ will not monitor any pull requests.

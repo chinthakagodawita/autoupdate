@@ -169,13 +169,37 @@ export class AutoUpdater {
     let pullsPage: octokit.OctokitResponse<any>;
     for await (pullsPage of this.octokit.paginate.iterator(paginatorOpts)) {
       let pull: PullRequestResponse['data'];
-      for (pull of pullsPage.data) {
-        ghCore.startGroup(`PR-${pull.number}`);
-        const isUpdated = await this.update(owner, pull);
-        ghCore.endGroup();
+      const prRateLimit = this.config.prRateLimit()
 
-        if (isUpdated) {
-          updated++;
+      if (prRateLimit == -1) {
+        ghCore.info(
+            `No PR limit rate. Trying to update all PRs`,
+        );
+        for (pull of pullsPage.data) {
+          ghCore.startGroup(`PR-${pull.number}`);
+          const isUpdated = await this.update(owner, pull);
+          ghCore.endGroup();
+
+          if (isUpdated) {
+            updated++;
+          }
+        }
+
+      } else {
+        ghCore.info(
+            `PR LIMIT RATE = '${prRateLimit}.`,
+        );
+        for (pull of pullsPage.data) {
+          ghCore.startGroup(`PR-${pull.number}`);
+          const isUpdated = await this.update(owner, pull);
+          ghCore.endGroup();
+
+          if (isUpdated) {
+            updated++;
+          }
+          if (updated == prRateLimit) {
+            break
+          }
         }
       }
     }

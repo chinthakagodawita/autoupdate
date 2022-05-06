@@ -51,6 +51,10 @@ export class ConfigLoader {
     return parseInt(this.getValue('RETRY_COUNT', false, 5), 10);
   }
 
+  prRateLimit(): number {
+    return parseInt(this.getValue('PR_RATE_LIMIT', false, -1), 10);
+  }
+
   retrySleep(): number {
     // In milliseconds.
     return parseInt(this.getValue('RETRY_SLEEP', false, 300), 10);

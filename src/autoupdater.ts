@@ -329,7 +329,7 @@ export class AutoUpdater {
     const readyStateFilter = this.config.pullRequestReadyState();
     if (readyStateFilter !== 'all') {
       ghCore.info('Checking PR ready state');
-      ghCore.info(`PR ${pull}`);
+      ghCore.info(`PR ${JSON.stringify(pull)}`);
 
       if (readyStateFilter === 'draft' && !pull.draft) {
         ghCore.info(

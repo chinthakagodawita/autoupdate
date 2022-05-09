@@ -187,7 +187,7 @@ export class AutoUpdater {
 
       } else {
         ghCore.info(
-            `PR LIMIT RATE = '${prRateLimit}.`,
+            `PR RATE LIMIT = ${prRateLimit}.`,
         );
         for (pull of pullsPage.data) {
           ghCore.startGroup(`PR-${pull.number}`);

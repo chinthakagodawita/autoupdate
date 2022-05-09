@@ -294,12 +294,15 @@ export class AutoUpdater {
               ref: pull.head.sha,
             });
 
-        checkSuitesResult.check_suites.some(function (checkSuite) {
-          ghCore.info(`Checking \n${JSON.stringify(checkSuite)}`);
-          if (checkSuite.conclusion !== "success") {
-            ghCore.info(`Check suite was not green! \n${JSON.stringify(checkSuite)}`);
-            return false
-          } else return true
+        let hasFailingCheck = false;
+        checkSuitesResult.check_suites.some(function(item,index){
+          ghCore.info(`Checking \n${JSON.stringify(item)}`);
+          if(item.conclusion !== "success"){
+            ghCore.info(`Check suite was not green! \n${JSON.stringify(item)}`);
+            hasFailingCheck = true
+            return true;
+          }
+          return !hasFailingCheck;
         });
 
       } catch (e: unknown) {

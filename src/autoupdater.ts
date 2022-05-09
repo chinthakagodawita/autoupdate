@@ -283,13 +283,33 @@ export class AutoUpdater {
       );
       return false;
     }
-    // https://docs.github.com/en/graphql/reference/enums#mergestatestatus
+
     const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks()
-    if (isPullRequestMustPassChecks && pull.mergeable_state !== 'CLEAN') {
-      ghCore.warning(
-          `Skipping pull request, didn't pass checks of branch protection.`,
-      );
-      return false;
+    if (isPullRequestMustPassChecks) {
+      try {
+        const {data: checkSuitesResult} =
+            await this.octokit.rest.checks.listSuitesForRef({
+              owner: pull.head.repo.owner.login,
+              repo: pull.head.repo.name,
+              ref: pull.head.sha,
+            });
+
+        checkSuitesResult.check_suites.forEach(function (checkSuite) {
+          ghCore.info(`Checking \n${JSON.stringify(checkSuite)}`);
+          if (checkSuite.conclusion !== "success") {
+            ghCore.info(`Check suite was not green! \n${JSON.stringify(checkSuite)}`);
+            return false
+          }
+        })
+
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          ghCore.error(
+              `Caught error trying to verify check suites: ${e.message}`,
+          );
+        }
+        return false;
+      }
     }
 
     try {

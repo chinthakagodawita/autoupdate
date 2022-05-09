@@ -283,6 +283,14 @@ export class AutoUpdater {
       );
       return false;
     }
+    // https://docs.github.com/en/graphql/reference/enums#mergestatestatus
+    const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks()
+    if (isPullRequestMustPassChecks && pull.mergeable_state !== 'CLEAN') {
+      ghCore.warning(
+          `Skipping pull request, didn't pass checks of branch protection.`,
+      );
+      return false;
+    }
 
     try {
       const { data: comparison } =

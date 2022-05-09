@@ -77,6 +77,10 @@ export class ConfigLoader {
     return this.getValue('PR_READY_STATE', false, 'all');
   }
 
+  pullRequestMustPassChecks(): string {
+    return this.getValue('PR_MUST_PASS_CHECKS', false, false)
+  }
+
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   getValue(key: string, required = false, defaultVal?: any): any {
     if (

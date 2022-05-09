@@ -296,11 +296,11 @@ export class AutoUpdater {
 
         let hasFailingCheck = false;
         checkSuitesResult.check_suites.some(function(item,index){
-          ghCore.info(`Checking \n${JSON.stringify(item)}`);
+          ghCore.info(`Check suite status : ${item.status} with conclusion ${item.conclusion}`);
           if(item.conclusion !== "success"){
-            ghCore.info(`Check suite was not green! \n${JSON.stringify(item)}`);
+            ghCore.info(`Check suite was not green!`);
             hasFailingCheck = true
-            return true;
+            return false;
           }
           return !hasFailingCheck;
         });

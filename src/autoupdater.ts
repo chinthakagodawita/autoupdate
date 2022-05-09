@@ -294,13 +294,13 @@ export class AutoUpdater {
               ref: pull.head.sha,
             });
 
-        checkSuitesResult.check_suites.forEach(function (checkSuite) {
+        checkSuitesResult.check_suites.some(function (checkSuite) {
           ghCore.info(`Checking \n${JSON.stringify(checkSuite)}`);
           if (checkSuite.conclusion !== "success") {
             ghCore.info(`Check suite was not green! \n${JSON.stringify(checkSuite)}`);
             return false
-          }
-        })
+          } else return true
+        });
 
       } catch (e: unknown) {
         if (e instanceof Error) {

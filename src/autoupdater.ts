@@ -288,14 +288,16 @@ export class AutoUpdater {
     if (isPullRequestMustPassChecks) {
       try {
         const {data: checkSuitesResult} =
-            await this.octokit.rest.checks.listSuitesForRef({
+            await this.octokit.rest.checks.listForRef({
               owner: pull.head.repo.owner.login,
               repo: pull.head.repo.name,
-              ref: pull.head.sha,
+              ref: pull.head.ref,
             });
 
+        ghCore.info(`listForRef is :\n ${checkSuitesResult.check_runs}\n`)
+
         let hasFailingCheck = false;
-        checkSuitesResult.check_suites.every(function(item,index){
+        checkSuitesResult.check_runs.every(function(item,index){
           ghCore.info(`Check suite status : ${item.status} with conclusion ${item.conclusion}`);
           if(item.conclusion !== "success"){
             ghCore.info(`Check suite was not green!`);

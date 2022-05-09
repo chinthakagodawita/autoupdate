@@ -295,15 +295,16 @@ export class AutoUpdater {
             });
 
         let hasFailingCheck = false;
-        checkSuitesResult.check_suites.some(function(item,index){
+        checkSuitesResult.check_suites.every(function(item,index){
           ghCore.info(`Check suite status : ${item.status} with conclusion ${item.conclusion}`);
           if(item.conclusion !== "success"){
             ghCore.info(`Check suite was not green!`);
             hasFailingCheck = true
             return false;
           }
-          return !hasFailingCheck;
         });
+        ghCore.info(`hasFailingCheck is ${hasFailingCheck}`);
+        return !hasFailingCheck;
 
       } catch (e: unknown) {
         if (e instanceof Error) {

@@ -303,9 +303,10 @@ export class AutoUpdater {
           )}  \n`,
         );
         ghCore.info(`statuses are :\n ${JSON.stringify(statuses)}\n`);
+        ghCore.info(`check_runs length :\n ${checkSuitesResult.check_runs.length}\n`);
 
         let hasFailingCheck = false;
-        checkSuitesResult.check_runs.every(function (item) {
+        checkSuitesResult.check_runs.forEach((item) => {
           ghCore.info(
             `Check suite status : ${item.status} with conclusion ${item.conclusion}`,
           );

@@ -280,8 +280,7 @@ export class AutoUpdater {
     }
 
     const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks();
-    if (!isPullRequestMustPassChecks) {
-    } else {
+    if (isPullRequestMustPassChecks) {
       try {
         const { data: checkSuitesResult } =
           await this.octokit.rest.checks.listForRef({
@@ -297,6 +296,7 @@ export class AutoUpdater {
             ref: pull.head.ref,
           });
 
+        ghCore.info(`ref is :\n ${pull.head.ref}\n`);
         ghCore.info(`listForRef is :\n ${checkSuitesResult.check_runs}\n`);
         ghCore.info(`statuses are :\n ${statuses}\n`);
 

@@ -169,12 +169,10 @@ export class AutoUpdater {
     let pullsPage: octokit.OctokitResponse<any>;
     for await (pullsPage of this.octokit.paginate.iterator(paginatorOpts)) {
       let pull: PullRequestResponse['data'];
-      const prRateLimit = this.config.prRateLimit()
+      const prRateLimit = this.config.prRateLimit();
 
       if (prRateLimit == -1) {
-        ghCore.info(
-            `No PR limit rate. Trying to update all PRs`,
-        );
+        ghCore.info(`No PR limit rate. Trying to update all PRs`);
         for (pull of pullsPage.data) {
           ghCore.startGroup(`PR-${pull.number}`);
           const isUpdated = await this.update(owner, pull);
@@ -184,11 +182,8 @@ export class AutoUpdater {
             updated++;
           }
         }
-
       } else {
-        ghCore.info(
-            `PR RATE LIMIT = ${prRateLimit}.`,
-        );
+        ghCore.info(`PR RATE LIMIT = ${prRateLimit}.`);
         for (pull of pullsPage.data) {
           ghCore.startGroup(`PR-${pull.number}`);
           const isUpdated = await this.update(owner, pull);
@@ -198,7 +193,7 @@ export class AutoUpdater {
             updated++;
           }
           if (updated == prRateLimit) {
-            break
+            break;
           }
         }
       }
@@ -284,34 +279,54 @@ export class AutoUpdater {
       return false;
     }
 
-    const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks()
-    if (isPullRequestMustPassChecks) {
+    const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks();
+    if (!isPullRequestMustPassChecks) {
+    } else {
       try {
-        const {data: checkSuitesResult} =
-            await this.octokit.rest.checks.listForRef({
-              owner: pull.head.repo.owner.login,
-              repo: pull.head.repo.name,
-              ref: pull.head.ref,
-            });
+        const { data: checkSuitesResult } =
+          await this.octokit.rest.checks.listForRef({
+            owner: pull.head.repo.owner.login,
+            repo: pull.head.repo.name,
+            ref: pull.head.ref,
+          });
 
-        ghCore.info(`listForRef is :\n ${checkSuitesResult.check_runs}\n`)
+        const { data: statuses } =
+          await this.octokit.rest.repos.listCommitStatusesForRef({
+            owner: pull.head.repo.owner.login,
+            repo: pull.head.repo.name,
+            ref: pull.head.ref,
+          });
+
+        ghCore.info(`listForRef is :\n ${checkSuitesResult.check_runs}\n`);
+        ghCore.info(`statuses are :\n ${statuses}\n`);
 
         let hasFailingCheck = false;
-        checkSuitesResult.check_runs.every(function(item,index){
-          ghCore.info(`Check suite status : ${item.status} with conclusion ${item.conclusion}`);
-          if(item.conclusion !== "success"){
+        checkSuitesResult.check_runs.every(function (item) {
+          ghCore.info(
+            `Check suite status : ${item.status} with conclusion ${item.conclusion}`,
+          );
+          if (item.conclusion !== 'success') {
             ghCore.info(`Check suite was not green!`);
-            hasFailingCheck = true
+            hasFailingCheck = true;
             return false;
           }
         });
-        ghCore.info(`hasFailingCheck is ${hasFailingCheck}`);
-        return !hasFailingCheck;
 
+        let hasFailBuild = false;
+        if (statuses.length > 0) {
+          if (statuses[0].state !== 'success') {
+            hasFailBuild = true;
+          }
+        }
+
+        ghCore.info(`hasFailingCheck is ${hasFailingCheck}`);
+        ghCore.info(`hasFailBuild is ${hasFailBuild}`);
+
+        return !hasFailingCheck && !hasFailBuild;
       } catch (e: unknown) {
         if (e instanceof Error) {
           ghCore.error(
-              `Caught error trying to verify check suites: ${e.message}`,
+            `Caught error trying to verify check suites: ${e.message}`,
           );
         }
         return false;

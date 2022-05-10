@@ -297,8 +297,12 @@ export class AutoUpdater {
           });
 
         ghCore.info(`ref is :\n ${pull.head.ref}\n`);
-        ghCore.info(`listForRef is :\n ${checkSuitesResult.check_runs}\n`);
-        ghCore.info(`statuses are :\n ${statuses}\n`);
+        ghCore.info(
+          `listForRef is :\n  ${JSON.stringify(
+            checkSuitesResult.check_runs,
+          )}  \n`,
+        );
+        ghCore.info(`statuses are :\n ${JSON.stringify(statuses)}\n`);
 
         let hasFailingCheck = false;
         checkSuitesResult.check_runs.every(function (item) {
@@ -308,7 +312,6 @@ export class AutoUpdater {
           if (item.conclusion !== 'success') {
             ghCore.info(`Check suite was not green!`);
             hasFailingCheck = true;
-            return false;
           }
         });
 

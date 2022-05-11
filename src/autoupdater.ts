@@ -296,33 +296,42 @@ export class AutoUpdater {
             ref: pull.head.ref,
           });
 
-        ghCore.info(`ref is :\n ${pull.head.ref}\n`);
-        ghCore.info(
-          `listForRef is :\n  ${JSON.stringify(
-            checkSuitesResult.check_runs,
-          )}  \n`,
-        );
-        ghCore.info(`statuses are :\n ${JSON.stringify(statuses)}\n`);
-        ghCore.info(`check_runs length :\n ${checkSuitesResult.check_runs.length}\n`);
+        ghCore.startGroup(`Check runs were retrieved for ref: ${pull.head.ref}`)
+        ghCore.info(`Number of check runs found: ${checkSuitesResult.check_runs.length}`);
+        ghCore.info(JSON.stringify(checkSuitesResult.check_runs));
+        ghCore.endGroup()
 
+        ghCore.startGroup(`Commit statuses were retrieved for ref: ${pull.head.ref}`)
+        ghCore.info(JSON.stringify(statuses));
+        ghCore.endGroup()
+
+        ghCore.startGroup(`Retrieving check suites filter`)
         const checkSuitesToPass = this.config.checkSuitesToPass()
+        if (checkSuitesToPass.length == 0) {
+          ghCore.info(`No check suites array was passed. All check runs will be verified.`)
+        } else {
+          ghCore.info(`Verify only check runs from these check suites ${JSON.stringify(checkSuitesToPass)}`)
+        }
+        ghCore.endGroup()
+
         let hasFailingCheck = false;
         checkSuitesResult.check_runs.forEach((checkRun) => {
-          ghCore.info(
-            `Check suite status : ${checkRun.status} with conclusion ${checkRun.conclusion}`,
-          );
+          ghCore.startGroup(`Verifying check run ${checkRun.name}`);
+          ghCore.info(`Check run status : ${checkRun.status} with conclusion ${checkRun.conclusion}`);
 
           if (checkSuitesToPass.length == 0) {
-            ghCore.info(`No check suites array was passed. All check runs will be verified.`)
+            // No check suite filter was passed, we will check only the conclusion of the check run.
             if (checkRun.conclusion !== 'success') {
               ghCore.info(`Check run ${checkRun.name} was not successful!`);
               hasFailingCheck = true;
             }
 
           } else {
-            ghCore.info(`Verify only check runs from these check suites ${JSON.stringify(checkSuitesToPass)}`)
+            // A list of check filters was passed. Therefore we will check the status of the check runs that belong
+            // to one of the passed check suite filters.
             const checkSuitesApp = checkRun.app
-            if (checkSuitesApp) { // run only if checkSuitesApp is not null not undefined
+            if (checkSuitesApp) {
+              // checkSuitesApp is not null and not undefined
               if (checkSuitesToPass.includes(checkSuitesApp.name) && checkRun.conclusion !== 'success') {
                 ghCore.info(`Check run ${checkRun.name} was not successful!`);
                 hasFailingCheck = true;
@@ -333,7 +342,7 @@ export class AutoUpdater {
             }
 
           }
-
+          ghCore.endGroup()
         });
 
         let hasFailBuild = false;

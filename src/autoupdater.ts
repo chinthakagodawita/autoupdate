@@ -305,15 +305,35 @@ export class AutoUpdater {
         ghCore.info(`statuses are :\n ${JSON.stringify(statuses)}\n`);
         ghCore.info(`check_runs length :\n ${checkSuitesResult.check_runs.length}\n`);
 
+        const checkSuitesToPass = this.config.checkSuitesToPass()
         let hasFailingCheck = false;
-        checkSuitesResult.check_runs.forEach((item) => {
+        checkSuitesResult.check_runs.forEach((checkRun) => {
           ghCore.info(
-            `Check suite status : ${item.status} with conclusion ${item.conclusion}`,
+            `Check suite status : ${checkRun.status} with conclusion ${checkRun.conclusion}`,
           );
-          if (item.conclusion !== 'success') {
-            ghCore.info(`Check suite was not green!`);
-            hasFailingCheck = true;
+
+          if (checkSuitesToPass.length == 0) {
+            ghCore.info(`No check suites array was passed. All check runs will be verified.`)
+            if (checkRun.conclusion !== 'success') {
+              ghCore.info(`Check run ${checkRun.name} was not successful!`);
+              hasFailingCheck = true;
+            }
+
+          } else {
+            ghCore.info(`Verify only check runs from these check suites ${JSON.stringify(checkSuitesToPass)}`)
+            const checkSuitesApp = checkRun.app
+            if (checkSuitesApp) { // run only if checkSuitesApp is not null not undefined
+              if (checkSuitesToPass.includes(checkSuitesApp.name) && checkRun.conclusion !== 'success') {
+                ghCore.info(`Check run ${checkRun.name} was not successful!`);
+                hasFailingCheck = true;
+              }
+            } else {
+              ghCore.info(`Check run was skipped because it does not have a check suite app object.`)
+              ghCore.info(JSON.stringify(checkRun))
+            }
+
           }
+
         });
 
         let hasFailBuild = false;

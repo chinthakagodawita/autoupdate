@@ -81,6 +81,10 @@ export class ConfigLoader {
     return this.getValue('PR_MUST_PASS_CHECKS', false, false)
   }
 
+  checkSuitesToPass(): string[] {
+    return this.getValue('PR_CHECK_SUITS_TO_PASS', false, [])
+  }
+
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   getValue(key: string, required = false, defaultVal?: any): any {
     if (

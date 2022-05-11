@@ -282,6 +282,8 @@ export class AutoUpdater {
     const isPullRequestMustPassChecks = this.config.pullRequestMustPassChecks();
     if (isPullRequestMustPassChecks) {
       try {
+        // Get all check runs for the selected ref
+        // See https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference
         const { data: checkSuitesResult } =
           await this.octokit.rest.checks.listForRef({
             owner: pull.head.repo.owner.login,
@@ -289,6 +291,8 @@ export class AutoUpdater {
             ref: pull.head.ref,
           });
 
+        // Get all statuses of the selected ref
+        // See https://docs.github.com/en/rest/commits/statuses#list-commit-statuses-for-a-reference
         const { data: statuses } =
           await this.octokit.rest.repos.listCommitStatusesForRef({
             owner: pull.head.repo.owner.login,

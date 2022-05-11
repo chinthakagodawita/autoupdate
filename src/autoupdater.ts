@@ -330,7 +330,7 @@ export class AutoUpdater {
         }
         ghCore.endGroup();
 
-        let hasFailingCheck = false;
+        let hasNoFailingChecks = true;
         checkSuitesResult.check_runs.forEach((checkRun) => {
           ghCore.startGroup(`Verifying check run ${checkRun.name}`);
           ghCore.info(
@@ -341,7 +341,7 @@ export class AutoUpdater {
             // No check suite filter was passed, we will check only the conclusion of the check run.
             if (checkRun.conclusion !== 'success') {
               ghCore.info(`Check run ${checkRun.name} was not successful!`);
-              hasFailingCheck = true;
+              hasNoFailingChecks = false;
             }
           } else {
             // A list of check filters was passed. Therefore we will check the status of the check runs that belong
@@ -354,7 +354,7 @@ export class AutoUpdater {
                 checkRun.conclusion !== 'success'
               ) {
                 ghCore.info(`Check run ${checkRun.name} was not successful!`);
-                hasFailingCheck = true;
+                hasNoFailingChecks = false;
               }
             } else {
               ghCore.info(
@@ -366,17 +366,23 @@ export class AutoUpdater {
           ghCore.endGroup();
         });
 
-        let hasFailBuild = false;
+        ghCore.startGroup(`Evaluate latest commit status`);
+        let lastCommitStatusIsSuccess = true;
         if (statuses.length > 0) {
+          // The first status is the latest one.
+          // See https://docs.github.com/en/rest/commits/statuses#list-commit-statuses-for-a-reference
           if (statuses[0].state !== 'success') {
-            hasFailBuild = true;
+            lastCommitStatusIsSuccess = false;
           }
         }
+        ghCore.endGroup();
 
-        ghCore.info(`hasFailingCheck is ${hasFailingCheck}`);
-        ghCore.info(`hasFailBuild is ${hasFailBuild}`);
+        ghCore.info(`Does PR have failing checks? ${hasNoFailingChecks}`);
+        ghCore.info(
+          `Is PR latest commit status successful? ${lastCommitStatusIsSuccess}`,
+        );
 
-        return !hasFailingCheck && !hasFailBuild;
+        return hasNoFailingChecks && lastCommitStatusIsSuccess;
       } catch (e: unknown) {
         if (e instanceof Error) {
           ghCore.error(

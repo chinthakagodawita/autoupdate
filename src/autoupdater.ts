@@ -366,9 +366,7 @@ export class AutoUpdater {
           ghCore.endGroup();
         });
 
-        ghCore.startGroup(`Evaluate latest commit status`);
         const commitStatusSuccess = combinedStatus.state === 'success';
-        ghCore.endGroup();
 
         ghCore.info(`Does PR have failing checks? ${hasNoFailingChecks}`);
         ghCore.info(

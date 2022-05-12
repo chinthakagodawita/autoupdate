@@ -745,6 +745,49 @@ describe('test `handlePush`', () => {
     expect(updated).toEqual(2);
     expect(updateSpy).toHaveBeenCalledTimes(2);
   });
+
+  test('push event when PR must pass checks', async () => {
+    (config.pullRequestMustPassChecks as jest.Mock).mockReturnValue(true);
+
+    const updater = new AutoUpdater(config, dummyPushEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 1;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const listForRefMock = []
+    const combinedStatusMock = []
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const listForRef = nock('https://api.github.com:443')
+      .get(
+         `/repos/${owner}/${repo}/commits/${ref}/check-runs`,
+      )
+      .reply(200, listForRefMock);
+
+    const combinedStatus = nock('https://api.github.com:443')
+       .get(
+          `/repos/${owner}/${repo}/commits/${ref}/status`,
+       )
+       .reply(200, combinedStatusMock);
+
+    const updated = await updater.handlePush();
+
+    expect(updated).toEqual(1);
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+   });
 });
 
 describe('test `handleSchedule`', () => {

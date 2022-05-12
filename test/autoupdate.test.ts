@@ -690,6 +690,61 @@ describe('test `handlePush`', () => {
     expect(updated).toEqual(0);
     expect(updateSpy).toHaveBeenCalledTimes(0);
   });
+
+  test('push event when PR reaches rate limit', async () => {
+        (config.prRateLimit as jest.Mock).mockReturnValue(1);
+
+    const updater = new AutoUpdater(config, dummyPushEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 2;
+    for (let i = 0; i < expectedPulls; i++) {
+      pullsMock.push({
+        id: i,
+        number: i,
+      });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+      .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+      )
+      .reply(200, pullsMock);
+
+    const updated = await updater.handlePush();
+
+    expect(updated).toEqual(1);
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test('push event when no PR rate limit is set', async () => {
+
+    const updater = new AutoUpdater(config, dummyPushEvent);
+
+    const pullsMock = [];
+    const expectedPulls = 2;
+    for (let i = 0; i < expectedPulls; i++) {
+    pullsMock.push({
+        id: i,
+        number: i,
+     });
+    }
+
+    const updateSpy = jest.spyOn(updater, 'update').mockResolvedValue(true);
+
+    const scope = nock('https://api.github.com:443')
+     .get(
+        `/repos/${owner}/${repo}/pulls?base=${branch}&state=open&sort=updated&direction=desc`,
+     )
+    .reply(200, pullsMock);
+
+    const updated = await updater.handlePush();
+
+    expect(updated).toEqual(2);
+    expect(updateSpy).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('test `handleSchedule`', () => {

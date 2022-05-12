@@ -291,10 +291,10 @@ export class AutoUpdater {
             ref: pull.head.ref,
           });
 
-        // Get all statuses of the selected ref
-        // See https://docs.github.com/en/rest/commits/statuses#list-commit-statuses-for-a-reference
-        const { data: statuses } =
-          await this.octokit.rest.repos.listCommitStatusesForRef({
+        // Get combined status for a specific commit ref
+        // See https://docs.github.com/en/rest/commits/statuses#get-the-combined-status-for-a-specific-reference
+        const { data: combinedStatus } =
+          await this.octokit.rest.repos.getCombinedStatusForRef({
             owner: pull.head.repo.owner.login,
             repo: pull.head.repo.name,
             ref: pull.head.ref,
@@ -312,7 +312,7 @@ export class AutoUpdater {
         ghCore.startGroup(
           `Commit statuses were retrieved for ref: ${pull.head.ref}`,
         );
-        ghCore.info(JSON.stringify(statuses));
+        ghCore.info(JSON.stringify(combinedStatus));
         ghCore.endGroup();
 
         ghCore.startGroup(`Retrieving check suites filter`);
@@ -367,22 +367,15 @@ export class AutoUpdater {
         });
 
         ghCore.startGroup(`Evaluate latest commit status`);
-        let lastCommitStatusIsSuccess = true;
-        if (statuses.length > 0) {
-          // The first status is the latest one.
-          // See https://docs.github.com/en/rest/commits/statuses#list-commit-statuses-for-a-reference
-          if (statuses[0].state !== 'success') {
-            lastCommitStatusIsSuccess = false;
-          }
-        }
+        const commitStatusSuccess = combinedStatus.state === 'success';
         ghCore.endGroup();
 
         ghCore.info(`Does PR have failing checks? ${hasNoFailingChecks}`);
         ghCore.info(
-          `Is PR latest commit status successful? ${lastCommitStatusIsSuccess}`,
+          `Is PR combined commit status successful? ${commitStatusSuccess}`,
         );
 
-        return hasNoFailingChecks && lastCommitStatusIsSuccess;
+        return hasNoFailingChecks && commitStatusSuccess;
       } catch (e: unknown) {
         if (e instanceof Error) {
           ghCore.error(

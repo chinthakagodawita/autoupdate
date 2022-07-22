@@ -1,27 +1,13 @@
 name: autoupdate
 on:
-  # pull_request:
-  #   types:
-  #     - labeled
-  #     - unlabeled
-  #     - synchronize
-  #     - opened
-  #     - edited
-  #     - ready_for_review
-  #     - unlocked
-  #     - reopened
-  push:
-    branches:
-      - 'unstable'
-      - 'unstable-dest'
-      - 'master'
+  push: {}
 #    tags: {}
 jobs:
   autoupdate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
       - name: autoupdate
         uses: ./
         env:

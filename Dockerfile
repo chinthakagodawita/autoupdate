@@ -1,4 +1,4 @@
-FROM node:16-alpine as builder
+FROM node:18-alpine as builder
 
 RUN mkdir -p /opt/autoupdate/dist
 
@@ -8,7 +8,7 @@ COPY . /opt/autoupdate/
 
 RUN yarn install --frozen-lockfile && yarn run build
 
-FROM node:16-alpine as runner
+FROM node:18-alpine as runner
 
 LABEL com.github.actions.name="Auto-update pull requests with changes from their base branch"
 LABEL com.github.actions.description="A GitHub Action that auto-updates PRs with changes from their base branch"

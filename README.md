@@ -73,6 +73,8 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 
 - `MERGE_MSG`: A custom message to use when creating the merge commit from the destination branch to your pull request's branch.
 
+- `MERGE_COMMENT`: A custom comment to make on the pull request after a successful merge.
+
 - `RETRY_COUNT`: The number of times a branch update should be attempted before _autoupdate_ gives up (default: `"5"`).
 
 - `RETRY_SLEEP`: The amount of time (in milliseconds) that _autoupdate_ should wait between branch update attempts (default: `"300"`).

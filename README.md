@@ -9,23 +9,27 @@
 Create a file, in your repository, at `.github/workflows/autoupdate.yaml` with the following:
 
 ```yaml
-name: autoupdate
+name: Autoupdate Open PRs
+
 on:
-  # This will trigger on all pushes to all branches.
-  push: {}
-  # Alternatively, you can only trigger if commits are pushed to certain branches, e.g.:
-  # push:
-  #   branches:
-  #     - master
-  #     - unstable
+  push:
+    branches:
+      - main
+
 jobs:
-  autoupdate:
+  autoupdate-open-prs:
     name: autoupdate
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: docker://chinthakagodawita/autoupdate-action:v1
+      - uses: BondOrigination/autoupdate@master
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: "${{ secrets.GH_TOKEN_BOT_REPO_SCOPE }}"
+          PR_FILTER: "protected"
+          PR_READY_STATE: "ready_for_review"
+          MERGE_MSG: "Branch was auto-updated."
+          MERGE_COMMENT: "@bots-bot my-command"
+          MERGE_CONFLICT_ACTION: "ignore"
+
 ```
 
 This will trigger on all pushes and automatically update any pull requests, if changes are pushed to their destination branch.
@@ -72,6 +76,8 @@ All configuration values, except `GITHUB_TOKEN`, are optional.
 - `EXCLUDED_LABELS`: Controls which labels _autoupdate_ will ignore when evaluating otherwise-included PRs. This option works with all `PR_FILTER` options and can be either a single label or a comma-separated list of labels.
 
 - `MERGE_MSG`: A custom message to use when creating the merge commit from the destination branch to your pull request's branch.
+
+- `MERGE_COMMENT`: A custom comment to make on the pull request after a successful merge.
 
 - `RETRY_COUNT`: The number of times a branch update should be attempted before _autoupdate_ gives up (default: `"5"`).
 

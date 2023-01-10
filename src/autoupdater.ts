@@ -229,8 +229,9 @@ export class AutoUpdater {
       mergeOpts.commit_message = mergeMsg;
     }
 
+    let mergeResult;
     try {
-      return await this.merge(sourceEventOwner, pull.number, mergeOpts);
+      mergeResult = await this.merge(sourceEventOwner, pull.number, mergeOpts);
     } catch (e: unknown) {
       if (e instanceof Error) {
         ghCore.error(
@@ -240,6 +241,18 @@ export class AutoUpdater {
       }
       return false;
     }
+
+    const mergeComment = this.config.mergeComment();
+    if (mergeComment !== null && mergeComment.length > 0) {
+      await this.octokit.rest.issues.createComment({
+        owner: pull.head.repo.owner.login,
+        issue_number: pull.number,
+        repo: pull.head.repo.name,
+        body: mergeComment,
+      });
+    }
+
+    return mergeResult;
   }
 
   async prNeedsUpdate(pull: PullRequest): Promise<boolean> {
@@ -471,6 +484,20 @@ export class AutoUpdater {
 
             ghCore.error(
               `Could not update pull request #${prNumber} due to an authorisation error. This is probably because this pull request is from a fork and the current token does not have write access to the forked repository. Error was: ${error.message}`,
+            );
+
+            setOutputFn(Output.Conflicted, false);
+
+            return false;
+          }
+
+          if (
+            'status' in e &&
+            (e as octokit.RequestError).status === 404) {
+            const error = e as Error;
+
+            ghCore.error(
+              `Unable to merge pull request #${prNumber}. Could be because the PR doesn't exist, or the token lacks write permissions for the repo. Error was: ${error.message}`,
             );
 
             setOutputFn(Output.Conflicted, false);

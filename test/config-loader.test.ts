@@ -44,6 +44,13 @@ const tests = [
     type: 'string',
   },
   {
+    name: 'mergeComment',
+    envVar: 'MERGE_COMMENT',
+    required: false,
+    default: null,
+    type: 'string',
+  },
+  {
     name: 'conflictMsg',
     envVar: 'CONFLICT_MSG',
     required: false,

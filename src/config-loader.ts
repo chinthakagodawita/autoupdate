@@ -42,6 +42,11 @@ export class ConfigLoader {
     return msg === '' ? null : msg;
   }
 
+  mergeComment(): string {
+    const comment = this.getValue('MERGE_COMMENT', false, '').toString().trim();
+    return comment === '' ? null : comment;
+  }
+
   conflictMsg(): string {
     const msg = this.getValue('CONFLICT_MSG', false, '').toString().trim();
     return msg === '' ? null : msg;

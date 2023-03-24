@@ -462,9 +462,10 @@ export class AutoUpdater {
            * If this update was against a fork and we got a 403 then it's
            * probably because we don't have access to it.
            */
+          const requestError = e as unknown;
           if (
             'status' in e &&
-            (e as octokit.RequestError).status === 403 &&
+            (requestError as octokit.RequestError).status === 403 &&
             sourceEventOwner !== mergeOpts.owner
           ) {
             const error = e as Error;

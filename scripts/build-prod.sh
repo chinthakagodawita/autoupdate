@@ -4,7 +4,8 @@ set -e
 set -o nounset
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-REPO="chinthakagodawita/autoupdate-action"
+# REPO="chinthakagodawita/autoupdate-action"
+REPO="iso-io/github-autoupdate-action"
 
 pushd "${SCRIPT_DIR}/.." > /dev/null
 

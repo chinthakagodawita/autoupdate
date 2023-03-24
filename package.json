@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A GitHub Action that auto-updates PRs with changes from their base branch.",
   "main": "src/autoupdater.ts",
-  "repository": "https://github.com/chinthakagodawita/autoupdate",
+  "repository": "https://github.com/iso-io/github-autoupdate",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",
   "bin": {

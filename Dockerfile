@@ -1,10 +1,10 @@
 FROM node:16-alpine as builder
 
-RUN mkdir -p /opt/autoupdate/dist
+RUN mkdir -p /opt/github-autoupdate/dist
 
-WORKDIR /opt/autoupdate
+WORKDIR /opt/github-autoupdate
 
-COPY . /opt/autoupdate/
+COPY . /opt/github-autoupdate/
 
 RUN yarn install --frozen-lockfile && yarn run build
 
@@ -16,10 +16,10 @@ LABEL com.github.actions.icon="git-pull-request"
 LABEL com.github.actions.color="blue"
 
 RUN apk add --update --no-cache ca-certificates \
-  && mkdir -p /opt/autoupdate
+  && mkdir -p /opt/github-autoupdate
 
-WORKDIR /opt/autoupdate
+WORKDIR /opt/github-autoupdate
 
-COPY --from=builder /opt/autoupdate/dist/index.js /opt/autoupdate/index.js
+COPY --from=builder /opt/github-autoupdate/dist/index.js /opt/github-autoupdate/index.js
 
-ENTRYPOINT [ "node", "/opt/autoupdate/index.js" ]
+ENTRYPOINT [ "node", "/opt/github-autoupdate/index.js" ]

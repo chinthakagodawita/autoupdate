@@ -16,7 +16,7 @@ import {
   WebhookEvent,
   WorkflowDispatchEvent,
   WorkflowRunEvent,
-} from '@octokit/webhooks-definitions/schema';
+} from '@octokit/webhooks-types/schema';
 
 type PullRequestResponse =
   Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];

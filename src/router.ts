@@ -1,4 +1,4 @@
-import { WebhookEvent } from '@octokit/webhooks-definitions/schema';
+import { WebhookEvent } from '@octokit/webhooks-types';
 import { AutoUpdater } from '../src/autoupdater';
 import { ConfigLoader } from '../src/config-loader';
 

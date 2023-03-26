@@ -1,7 +1,7 @@
 import config from '../src/config-loader';
 import { AutoUpdater } from '../src/autoupdater';
 import { Router } from '../src/router';
-import { WebhookEvent } from '@octokit/webhooks-definitions/schema';
+import { WebhookEvent } from '@octokit/webhooks-types/schema';
 
 jest.mock('../src/config-loader');
 jest.mock('../src/autoupdater');

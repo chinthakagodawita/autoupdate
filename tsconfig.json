@@ -6,17 +6,8 @@
     "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["src/*", "bin/*"]
-    },
-    "plugins": [
-      {
-        "transform": "ts-auto-mock/transformer",
-        "cacheBetweenTests": false
-      },
-    ]
+    "rootDir": "."
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "bin/**/*"],
   "exclude": ["**/*.test.ts"]
 }

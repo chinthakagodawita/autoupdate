@@ -23,6 +23,7 @@ type PullRequest =
   | PullRequestEvent['pull_request'];
 
 type SetOutputFn = typeof ghCore.setOutput;
+type Filter = 'all' | 'labelled' | 'protected' | 'auto_merge';
 
 export class AutoUpdater {
   // See https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads
@@ -34,6 +35,110 @@ export class AutoUpdater {
     this.eventData = eventData;
     this.config = config;
     this.octokit = github.getOctokit(this.config.githubToken());
+  }
+
+  private async checkFilter(prFilter: Filter, pull: PullRequest): Promise<boolean> {
+    if (pull.merged === true) {
+      ghCore.warning('Skipping pull request, already merged.');
+      return false;
+    }
+    if (pull.state !== 'open') {
+      ghCore.warning(
+        `Skipping pull request, no longer open (current state: ${pull.state}).`,
+      );
+      return false;
+    }
+    if (!pull.head.repo) {
+      ghCore.warning(
+        `Skipping pull request, fork appears to have been deleted.`,
+      );
+      return false;
+    }
+
+    if (prFilter === 'labelled') {
+      const labels = this.config.pullRequestLabels();
+      if (labels.length === 0) {
+        ghCore.warning(
+          'Skipping pull request, no labels were defined (env var PR_LABELS is empty or not defined).',
+        );
+        return false;
+      }
+      ghCore.info(
+        `Checking if this PR has a label in our list (${labels.join(', ')}).`,
+      );
+
+      if (pull.labels.length === 0) {
+        ghCore.info('Skipping pull request, it has no labels.');
+        return false;
+      }
+
+      for (const label of pull.labels) {
+        if (label.name === undefined) {
+          ghCore.debug(`Label name is undefined, continuing.`);
+          continue;
+        }
+
+        if (labels.includes(label.name)) {
+          ghCore.info(
+            `Pull request has label '${label.name}' and PR branch is behind base branch.`,
+          );
+          return true;
+        }
+      }
+
+      ghCore.info(
+        'Pull request does not match any of the defined labels, skipping update.',
+      );
+      return false;
+    }
+
+    if (prFilter === 'protected') {
+      ghCore.info('Checking if this PR is against a protected branch.');
+      const { data: branch } = await this.octokit.rest.repos.getBranch({
+        owner: pull.head.repo.owner.login,
+        repo: pull.head.repo.name,
+        branch: pull.base.ref,
+      });
+
+      if (branch.protected) {
+        ghCore.info(
+          'Pull request is against a protected branch and is behind base branch.',
+        );
+        return true;
+      }
+
+      ghCore.info(
+        'Pull request is not against a protected branch, skipping update.',
+      );
+      return false;
+    }
+
+    if (prFilter === 'auto_merge') {
+      ghCore.info('Checking if this PR has auto_merge enabled.');
+
+      if (pull.auto_merge === null) {
+        ghCore.info(
+          'Pull request does not have auto_merge enabled, skipping update.',
+        );
+
+        return false;
+      }
+
+      ghCore.info(
+        'Pull request has auto_merge enabled and is behind base branch.',
+      );
+
+      return true;
+    }
+
+    if (prFilter === 'all') {
+      return true;
+    }
+
+    ghCore.error(
+      `Unexpected PR_FILTER value ${prFilter}`
+    );
+    return false;
   }
 
   async handlePush(): Promise<number> {
@@ -322,92 +427,22 @@ export class AutoUpdater {
       }
     }
 
+    const prFilters = this.config.pullRequestFilter().split(',');
     const prFilter = this.config.pullRequestFilter();
 
     ghCore.info(
       `PR_FILTER=${prFilter}, checking if this PR's branch needs to be updated.`,
     );
 
-    // If PR_FILTER=labelled, check that this PR has _any_ of the labels
-    // specified in that configuration option.
-    if (prFilter === 'labelled') {
-      const labels = this.config.pullRequestLabels();
-      if (labels.length === 0) {
-        ghCore.warning(
-          'Skipping pull request, no labels were defined (env var PR_LABELS is empty or not defined).',
-        );
-        return false;
-      }
-      ghCore.info(
-        `Checking if this PR has a label in our list (${labels.join(', ')}).`,
-      );
+    const shouldUpdate = (await Promise.all(prFilters.map(prFilter => this.checkFilter(prFilter as Filter, pull))))
+      .every(val => val === true);
 
-      if (pull.labels.length === 0) {
-        ghCore.info('Skipping pull request, it has no labels.');
-        return false;
-      }
-
-      for (const label of pull.labels) {
-        if (label.name === undefined) {
-          ghCore.debug(`Label name is undefined, continuing.`);
-          continue;
-        }
-
-        if (labels.includes(label.name)) {
-          ghCore.info(
-            `Pull request has label '${label.name}' and PR branch is behind base branch.`,
-          );
-          return true;
-        }
-      }
-
-      ghCore.info(
-        'Pull request does not match any of the defined labels, skipping update.',
-      );
-      return false;
+    if (shouldUpdate) {
+      ghCore.info('All checks pass and PR branch is behind base branch.');
+    } else {
+      ghCore.info('Not all checked passed, skipping branch');
     }
-
-    if (prFilter === 'protected') {
-      ghCore.info('Checking if this PR is against a protected branch.');
-      const { data: branch } = await this.octokit.rest.repos.getBranch({
-        owner: pull.head.repo.owner.login,
-        repo: pull.head.repo.name,
-        branch: pull.base.ref,
-      });
-
-      if (branch.protected) {
-        ghCore.info(
-          'Pull request is against a protected branch and is behind base branch.',
-        );
-        return true;
-      }
-
-      ghCore.info(
-        'Pull request is not against a protected branch, skipping update.',
-      );
-      return false;
-    }
-
-    if (prFilter === 'auto_merge') {
-      ghCore.info('Checking if this PR has auto_merge enabled.');
-
-      if (pull.auto_merge === null) {
-        ghCore.info(
-          'Pull request does not have auto_merge enabled, skipping update.',
-        );
-
-        return false;
-      }
-
-      ghCore.info(
-        'Pull request has auto_merge enabled and is behind base branch.',
-      );
-
-      return true;
-    }
-
-    ghCore.info('All checks pass and PR branch is behind base branch.');
-    return true;
+    return shouldUpdate;
   }
 
   async merge(

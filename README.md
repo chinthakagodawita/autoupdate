@@ -90,7 +90,7 @@ on:
 jobs:
   autoupdate:
     name: autoupdate
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: docker://chinthakagodawita/autoupdate-action:v1
         env:

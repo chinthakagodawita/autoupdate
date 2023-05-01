@@ -883,10 +883,15 @@
   resolved "https://registry.yarnpkg.com/@octokit/webhooks-methods/-/webhooks-methods-3.0.2.tgz#cece91cc72714a1c83b35d121e04334f051e509c"
   integrity sha512-Vlnv5WBscf07tyAvfDbp7pTkMZUwk7z7VwEF32x6HqI+55QRwBTcT+D7DDjZXtad/1dU9E32x0HmtDlF9VIRaQ==
 
-"@octokit/webhooks-types@6.10.0", "@octokit/webhooks-types@^6.10.0":
+"@octokit/webhooks-types@6.10.0":
   version "6.10.0"
   resolved "https://registry.yarnpkg.com/@octokit/webhooks-types/-/webhooks-types-6.10.0.tgz#b441780d26370c7682f4f964d4b36b5cb0c757f8"
   integrity sha512-lDNv83BeEyxxukdQ0UttiUXawk9+6DkdjjFtm2GFED+24IQhTVaoSbwV9vWWKONyGLzRmCQqZmoEWkDhkEmPlw==
+
+"@octokit/webhooks-types@^6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@octokit/webhooks-types/-/webhooks-types-6.11.0.tgz#1fb903bff3f2883490d6ba88d8cb8f8a55f68176"
+  integrity sha512-AanzbulOHljrku1NGfafxdpTCfw2ENaWzH01N2vqQM+cUFbk868Cgh0xylz0JIM9BoKbfI++bdD6EYX0Q/UTEw==
 
 "@octokit/webhooks@^10.7.0":
   version "10.7.0"

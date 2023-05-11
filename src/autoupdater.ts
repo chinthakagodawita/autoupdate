@@ -15,10 +15,8 @@ import { isRequestError } from './helpers/isRequestError';
 
 type PullRequestResponse =
   octokit.Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
-type MergeParameters =
-  octokit.Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
 type UpdateParameters =
-  octokit.Endpoints['POST /pulls/{owner}/{repo}/updates']['parameters'];
+  octokit.Endpoints['PUT /repos/{owner}/{repo}/pulls/{pull_number}']['parameters'];
 
 
 type PullRequest =
@@ -410,7 +408,7 @@ export class AutoUpdater {
   async merge(
     sourceEventOwner: string,
     prNumber: number,
-    mergeOpts: MergeParameters,
+    mergeOpts: UpdateParameters,
     // Allows for mocking in tests.
     setOutputFn: SetOutputFn = ghCore.setOutput,
   ): Promise<boolean> {

@@ -15,8 +15,9 @@ import { isRequestError } from './helpers/isRequestError';
 
 type PullRequestResponse =
   octokit.Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
-type MergeParameters =
-  octokit.Endpoints['POST /repos/{owner}/{repo}/merges']['parameters'];
+type UpdateParameters =
+  octokit.Endpoints['PUT /repos/{owner}/{repo}/pulls/{pull_number}']['parameters'];
+
 
 type PullRequest =
   | PullRequestResponse['data']
@@ -218,17 +219,11 @@ export class AutoUpdater {
     }
 
     const mergeMsg = this.config.mergeMsg();
-    const mergeOpts: MergeParameters = {
+    const mergeOpts: UpdateParameters = {
       owner: pull.head.repo.owner.login,
       repo: pull.head.repo.name,
-      // We want to merge the base branch into this one.
-      base: headRef,
-      head: baseRef,
+      pull_number: pull.number,
     };
-
-    if (mergeMsg !== null && mergeMsg.length > 0) {
-      mergeOpts.commit_message = mergeMsg;
-    }
 
     try {
       return await this.merge(sourceEventOwner, pull.number, mergeOpts);
@@ -413,7 +408,7 @@ export class AutoUpdater {
   async merge(
     sourceEventOwner: string,
     prNumber: number,
-    mergeOpts: MergeParameters,
+    mergeOpts: UpdateParameters,
     // Allows for mocking in tests.
     setOutputFn: SetOutputFn = ghCore.setOutput,
   ): Promise<boolean> {
@@ -425,7 +420,7 @@ export class AutoUpdater {
 
     const doMerge = async () => {
       const mergeResp: octokit.OctokitResponse<any> =
-        await this.octokit.rest.repos.merge(mergeOpts);
+        await this.octokit.rest.pulls.updateBranch(mergeOpts);
 
       // See https://developer.github.com/v3/repos/merging/#perform-a-merge
       const { status } = mergeResp;

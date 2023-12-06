@@ -483,7 +483,6 @@ export class AutoUpdater {
 
           if (e.message === 'Merge conflict') {
             setOutputFn(Output.Conflicted, true);
-            // setOutputFn('conflicted_pr_number', prNumber.toString());
 
             const formattedPrNumber = `PR-#${prNumber}`;
             this.conflictingPrNumbers.push(formattedPrNumber);

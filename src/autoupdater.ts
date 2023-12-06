@@ -13,6 +13,8 @@ import { ConfigLoader } from './config-loader';
 import { Output } from './Output';
 import { isRequestError } from './helpers/isRequestError';
 
+const OUTPUT_CONFLICTED_PR_NUMBERS = 'conflicted_pr_numbers';
+
 type PullRequestResponse =
   octokit.Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response'];
 type MergeParameters =
@@ -29,6 +31,8 @@ export class AutoUpdater {
   eventData: WebhookEvent;
   config: ConfigLoader;
   octokit: InstanceType<typeof GitHub>;
+
+  private conflictingPrNumbers: string[] = [];
 
   constructor(config: ConfigLoader, eventData: WebhookEvent) {
     this.eventData = eventData;
@@ -479,7 +483,17 @@ export class AutoUpdater {
 
           if (e.message === 'Merge conflict') {
             setOutputFn(Output.Conflicted, true);
-            setOutputFn('conflicted_pr_number', prNumber.toString());
+            // setOutputFn('conflicted_pr_number', prNumber.toString());
+
+            const formattedPrNumber = `PR-#${prNumber}`;
+            this.conflictingPrNumbers.push(formattedPrNumber);
+
+          // Set the list as an output
+          setOutputFn(
+            'conflicted_pr_numbers',
+            JSON.stringify(this.conflictingPrNumbers)
+          );
+
 
             if (mergeConflictAction === 'ignore') {
               // Ignore conflicts if configured to do so.

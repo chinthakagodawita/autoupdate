@@ -489,8 +489,8 @@ export class AutoUpdater {
 
           // Set the list as an output
           setOutputFn(
-            'conflicted_pr_numbers',
-            JSON.stringify(this.conflictingPrNumbers)
+            OUTPUT_CONFLICTED_PR_NUMBERS,
+            this.conflictingPrNumbers.join(' ')
           );
 
 

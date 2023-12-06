@@ -479,6 +479,7 @@ export class AutoUpdater {
 
           if (e.message === 'Merge conflict') {
             setOutputFn(Output.Conflicted, true);
+            setOutputFn('conflicted_pr_number', prNumber.toString());
 
             if (mergeConflictAction === 'ignore') {
               // Ignore conflicts if configured to do so.

@@ -9,8 +9,10 @@ jobs:
         uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
         with:
           node-version: 18.x
-      - name: Install Yarn v4
-        run: npm install -g yarn@4.5.3
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Set Yarn version
+        run: corepack prepare yarn@4.12.0 --activate
       - name: Install dependencies
         run: yarn install --dev
       - name: Lint files

@@ -6,6 +6,8 @@ WORKDIR /opt/autoupdate
 
 COPY . /opt/autoupdate/
 
+RUN corepack enable && corepack prepare yarn@4.12.0 --activate
+
 RUN yarn install --frozen-lockfile && yarn run build
 
 FROM node:18-alpine as runner

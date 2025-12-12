@@ -14,7 +14,7 @@ jobs:
       - name: Set Yarn version
         run: corepack prepare yarn@4.12.0 --activate
       - name: Install dependencies
-        run: yarn install --dev
+        run: yarn install
       - name: Lint files
         run: yarn run lint
       - name: Run tests

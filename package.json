@@ -6,9 +6,7 @@
   "repository": "https://github.com/chinthakagodawita/autoupdate",
   "author": "Chin Godawita <chin.godawita@me.com>",
   "license": "MIT",
-  "bin": {
-    "autoupdate-action": "bin/cli.js"
-  },
+  "bin": "bin/cli.js",
   "scripts": {
     "build": "ncc build bin/cli.ts --out dist",
     "lint": "eslint . && prettier --list-different bin/*.ts src/*.ts test/*.ts",
@@ -19,6 +17,7 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
+    "@lavamoat/preinstall-always-fail": "^2.1.1",
     "@octokit/types": "^9.0.0",
     "@octokit/webhooks": "^10.7.0",
     "@octokit/webhooks-types": "^6.10.0",
